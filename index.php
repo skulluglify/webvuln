@@ -57,7 +57,7 @@ foreach ($properties as $property) {
   $modifiers = $property->getModifiers();
 
   // attributes
-  $attributes = $property->getAttributes();
+  $attributes = $property->getAttributes(flags: ReflectionAttribute::IS_INSTANCEOF);
 
   foreach ($attributes as $attribute) {
 
@@ -78,13 +78,31 @@ foreach ($properties as $property) {
     $tag_name = $tag_reflect->getName();
     $tag_short_name = $tag_reflect->getShortName();
 
-    if ($attr_name === $tag_name || $attr_name === $tag_short_name) {
+    // -- start --
 
-      // must be check on __construct paramaters
+    $tag_attrs = $tag_reflect->getAttributes(Attribute::class, flags: ReflectionAttribute::IS_INSTANCEOF);
+
+    // check tag instance of attribute dengan reflection
+
+    $tag_attrs_size = 0;
+    foreach ($tag_attrs as $tag_attr) {
+      $tag_attrs_size += 1;
+      break;
+    }
+
+    $tag_verify = $tag_attrs_size > 0;
+
+    // -- end --
+
+    if ($tag_verify) {
+      if ($attr_name === $tag_name || $attr_name === $tag_short_name) {
   
-      // acquisition
-      $tag = $tag_reflect->newInstance(...$args);
-      echo $tag->getName() . PHP_EOL;
+        // must be check on __construct paramaters
+    
+        // acquisition
+        $tag = $tag_reflect->newInstance(...$args);
+        echo $tag->getName() . PHP_EOL;
+      }
     }
 
     // -- end --
