@@ -5,6 +5,7 @@ namespace Skfw\Interfaces\Virtualize;
 interface IVirtStdContent
 {
     public function __toString(): string;  // std_content propagation
+    public function GetName(): string;
 
     public function openHook(?string $filename = null, bool $update = false): bool;
 

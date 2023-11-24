@@ -2,7 +2,9 @@
     "name": "skfw/webvuln",
     "description": "web used for tester!",
     "require": {
-        "ramsey/uuid": "^4.7"
+        "ramsey/uuid": "^4.7",
+        "ext-fileinfo": "*",
+        "ext-libsodium": "*"
     },
     "license": "MIT",
     "autoload": {

@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'skfw/webvuln',
-        'pretty_version' => '1.0.0+no-version-set',
-        'version' => '1.0.0.0',
-        'reference' => NULL,
+        'pretty_version' => 'dev-main',
+        'version' => 'dev-main',
+        'reference' => '4a72b5bb4dabc8c381a2729e935f43a4d1d1f608',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -44,9 +44,9 @@
             ),
         ),
         'skfw/webvuln' => array(
-            'pretty_version' => '1.0.0+no-version-set',
-            'version' => '1.0.0.0',
-            'reference' => NULL,
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
+            'reference' => '4a72b5bb4dabc8c381a2729e935f43a4d1d1f608',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

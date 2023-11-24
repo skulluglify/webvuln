@@ -1,5 +1,4 @@
 <?php
-
 namespace Skfw\Cabbage;
 
 use HttpHeader;

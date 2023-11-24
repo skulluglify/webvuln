@@ -1,0 +1,165 @@
+<?php
+
+// TODO: array|string, array is can take like references
+/**
+ * @throws Exception
+ */
+function safe_file_name(string $name): string
+{
+    $name = trim($name);  // trimming empty spaces
+
+    $array_name = str_split($name);
+
+    $alpha_num = "-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz";
+    $array_alpha_num = str_split($alpha_num);
+    $alpha_num_length = strlen($alpha_num);
+
+    // name is empty string
+    if ($name === "")
+    {
+
+        $data = $array_alpha_num;
+        shuffle($data);
+
+        // shrinking
+        $shrink = random_int(20, 50);
+        $data = array_splice($data, 0, $shrink);
+        shuffle($data);
+
+        // returning
+        return "bk_" . join($data);  // start at 'bk_' for header
+    }
+
+    $temp = "";
+
+    foreach ($array_name as $char)
+    {
+        // character contains alpha numbers or empty spaces
+        if (str_contains($alpha_num, $char) or $char == " ")
+        {
+
+            $temp .= $char;
+        } else
+        {
+
+            // fixed indexes number
+            $i = random_int(0, $alpha_num_length - 1);
+            $temp .= $array_alpha_num[$i];
+        }
+    }
+
+    return $temp;
+}
+
+// TODO: array|string, array is can take like references
+function capitalize_each_word(string $text): string
+{
+
+    $data = str_split($text);
+    $alpha_upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    $alpha_lower = "abcdefghijklmnopqrstuvwxyz";
+    $alpha = $alpha_upper . $alpha_lower;
+
+    $temp = "";
+    $f = 0;  // first word must be capital word
+
+    foreach ($data as $char)
+    {
+
+        if ($f === 0)
+        {
+            $temp .= strtoupper($char);
+            $f = 1;
+
+            continue;
+        }
+
+        if (!str_contains($alpha, $char))
+        {
+            $temp .= $char;
+            $f = 0;
+
+            continue;
+        }
+
+        $temp .= strtolower($char);
+    }
+
+    return $temp;
+}
+
+
+function str_comp_case(string $left, string $right, int $case = 1): bool
+{
+    return match ($case)
+    {
+        0 => $left === $right,
+        1 => strtolower($left) === strtolower($right),
+        default => false,
+    };
+}
+
+/**
+ * @param string $query
+ * @return string[][]
+ */
+function query_decode(string $query): array
+{
+    // maybe query is URI component
+    $data = str_getcsv($query, "?");
+    $query = array_pop($data) ?? "";
+
+    $temp = [];
+    $queries = str_getcsv($query, "&");
+    foreach ($queries as $query)
+    {
+        $data = str_getcsv($query, "=");
+        $length = count($data);
+
+        if ($length > 0)
+        {
+            $key = $data[0];
+            $value = null;
+
+            if ($length > 1)
+            {
+                // acquire new value
+                $value = $data[1];
+
+                // decode query by url decode function
+                $decoded = urldecode($value);
+
+                // store data, acquire new data query, array append
+                if (array_key_exists($key, $temp))
+                {
+                    $temp[$key][] = $decoded;
+                    continue;
+                }
+
+                // store data, acquire new data query, create new array
+                $temp[$key] = [$decoded];
+                continue;
+            }
+
+            // maybe value is not set.
+            // store data, acquire new data query, array append
+            if (array_key_exists($key, $temp))
+            {
+                $temp[$key][] = null;  // nullable
+                continue;
+            }
+
+            // store data, acquire new data query, create new array
+            $temp[$key] = [null];  // nullable
+        }
+    }
+
+
+    return $temp;
+}
+
+// casting into string, hook 'toString' function
+function str(Stringable $any): string
+{
+    return "".$any;
+}

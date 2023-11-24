@@ -15,39 +15,36 @@ class VirtStdContent extends VirtStdContentAbs implements IVirtStdContent, Strin
     // private int $_whence = SEEK_SET;
     private bool $_readable;
     private bool $_writable;
+    private string $_name;  // stdin
     private string $_content;
     private int $_size;
     private bool $_closed;
 
     // public configuration
-    public string $filename = "php://input";  // stdin
     public int $chunk = 512;
     public int $max_size = 16777216;  // 16MB
 
-    public function __construct(string $filename, string $content = "", int|null $length = null, int|null $chunk = null, bool $readable = true, bool $writable = false)
+    public function __construct(
+        string $name,
+        string $content = "",
+        ?int $length = null,
+        ?int $chunk = null,
+        ?int $max_size = null,
+        bool $readable = true,
+        bool $writable = false,
+    )
     {
 
         // hook variables
-        $this->filename = $filename;
+        $this->_name = $name;
         $this->_content = $content;
 
-        // set new length
-        $this->_size = strlen($content);
+        $this->chunk = $chunk ?? $this->chunk;
+        $this->max_size = $max_size ?? $this->max_size;
 
-        if ($length !== null) {
-
-            // update length of content
-            $length = min($length, $this->$length, $this->max_size);
-            $this->_size = $length;
-
-            // content has been modified
-            $this->_content = substr($this->_content, 0, $length);
-        }
-
-        if ($chunk !== null) {
-
-            $this->chunk = $chunk;
-        }
+        $length = min($length ?? strlen($content), $this->max_size);
+        $this->_content = substr($this->_content, 0, $length);
+        $this->_size = $length;
 
         // virtualize file permission
         $this->_readable = $readable;
@@ -68,14 +65,8 @@ class VirtStdContent extends VirtStdContentAbs implements IVirtStdContent, Strin
     public function __toString(): string
     {
 
-        // prevent all activities
-        if ($this->_closed) {
-
-            return "";
-        }
-
         // short return content
-        return $this->_content ?? "";  // must be string type
+        return !$this->_closed ? $this->_content ?? "" : "";
     }
 
     private function _get_content(): ?string
@@ -91,6 +82,12 @@ class VirtStdContent extends VirtStdContentAbs implements IVirtStdContent, Strin
         return null;
     }
 
+    public function getName(): string
+    {
+        // copy-host no-references
+        return $this->_name;
+    }
+
     #[Override]
     public function openHook(?string $filename = null, bool $update = false): bool
     {
@@ -98,7 +95,7 @@ class VirtStdContent extends VirtStdContentAbs implements IVirtStdContent, Strin
 
         // setup
         // $offset = 0;
-        $filename = $filename ?? $this->filename;
+        $filename = $filename ?? $this->_name;
 
         $mode = null;
 
@@ -130,12 +127,12 @@ class VirtStdContent extends VirtStdContentAbs implements IVirtStdContent, Strin
             // fseek($stream, $offset, $this->_whence);  // no required, virt can handle it!
 
             // read data
-            if ($mode == "w" || $mode == "w+") {
+            if ($mode == "w" or $mode == "w+") {
 
                 fwrite($stream, $this->_content);
             }
 
-            if ($mode == "r" || $mode == "w+") {
+            if ($mode == "r" or $mode == "w+") {
 
                 // initialize
                 $chunk = $this->chunk;
@@ -190,13 +187,7 @@ class VirtStdContent extends VirtStdContentAbs implements IVirtStdContent, Strin
     {
 
         // prevent all activities
-        if ($this->_closed) {
-
-            return null;
-        }
-
-        // readable permission
-        if ($this->_readable) {
+        if ($this->readable()) {
 
             $offset += $this->_offset;
 
@@ -219,19 +210,7 @@ class VirtStdContent extends VirtStdContentAbs implements IVirtStdContent, Strin
     public function readAll(): ?string
     {
 
-        // prevent all activities
-        if ($this->_closed) {
-
-            return null;
-        }
-
-        if ($this->_readable) {
-
-            // get content
-            return $this->_get_content();
-        }
-
-        return null;
+        return $this->readable() ? $this->_get_content() : null;
     }
 
     #[Override]
@@ -239,13 +218,7 @@ class VirtStdContent extends VirtStdContentAbs implements IVirtStdContent, Strin
     {
 
         // prevent all activities
-        if ($this->_closed) {
-
-            return false;
-        }
-
-        // writable permission
-        if ($this->_writable) {
+        if ($this->writable()) {
 
             // unsafe get content
             $content = $this->_content;
@@ -280,30 +253,20 @@ class VirtStdContent extends VirtStdContentAbs implements IVirtStdContent, Strin
     public function readable(): bool
     {
 
-        if (!$this->_closed) {
-
-            return $this->_readable;
-        }
-
-        return false;
+        return !$this->_closed ? $this->_readable : false;
     }
 
     #[Override]
     public function writable(): bool
     {
 
-        if (!$this->_closed) {
-
-            return $this->_writable;
-        }
-
-        return false;
+        return !$this->_closed ? $this->_writable : false;
     }
 
     #[Override]
     public function size(): int
     {
-        return $this->_size;
+        return !$this->_closed ? $this->_size : 0;
     }
 
     #[Override]

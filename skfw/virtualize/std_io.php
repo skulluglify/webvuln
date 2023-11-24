@@ -13,7 +13,7 @@ class VirtStdIn implements IVirtStdContent, Stringable
 
     public function __construct(?VirtStdContent $content = null)
     {
-        $this->content = $content ?? new VirtStdContent(filename: "php://input", readable: true, writable: false);
+        $this->content = $content ?? new VirtStdContent(name: "php://input", readable: true, writable: false);
         $this->content->openHook();
     }
 
@@ -22,6 +22,13 @@ class VirtStdIn implements IVirtStdContent, Stringable
     {
 
         return $this->content->__toString();
+    }
+
+    #[Override]
+    public function getName(): string
+    {
+
+        return $this->content->getName();
     }
 
     #[Override]
@@ -102,7 +109,7 @@ class VirtStdOut implements IVirtStdContent, Stringable
 
     public function __construct(?VirtStdContent $content = null)
     {
-        $this->content = $content ?? new VirtStdContent(filename: "php://output", readable: false, writable: true);
+        $this->content = $content ?? new VirtStdContent(name: "php://output", readable: false, writable: true);
         $this->content->openHook();
     }
 
@@ -111,6 +118,13 @@ class VirtStdOut implements IVirtStdContent, Stringable
     {
 
         return $this->content->__toString();
+    }
+
+    #[Override]
+    public function getName(): string
+    {
+
+        return $this->content->getName();
     }
 
     #[Override]
