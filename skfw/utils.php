@@ -159,7 +159,57 @@ function query_decode(string $query): array
 }
 
 // casting into string, hook 'toString' function
-function str(Stringable $any): string
+function str(?Stringable $any): string
 {
-    return "".$any;
+    // nullable, i hate php!@#$
+    return $any !== null ? "".$any : "";
 }
+
+
+// csv extractor
+function map_mix(array $keys, array $values): array
+{
+    // length of values less than length of keys, set null
+    // length of values greater than length of keys, shrinking
+    $temp = [];
+    $n = count($values);
+    foreach ($keys as $i => $key)
+    {
+        if ($i < $n)
+        {
+            $temp[$key] = $values[$i];
+            continue;
+        }
+        $temp[$key] = null;
+    }
+
+    // returning
+    return $temp;
+}
+
+function unpack_csv_file(string $data, ?string $header = null, bool $skip_first_line = true): array
+{
+    // unpacking csv file into array
+    // set header by string with comma separator value
+    $skip_first_line = $skip_first_line && $header !== null;
+
+    $lines = explode("\n", $data);
+    $header = $header ?? array_shift($lines);  // remove head
+    $keys = str_getcsv(strtolower($header));  // get keys by header, set to lower case
+
+    $temp = [];
+    foreach ($lines as $i => $value)
+    {
+        // skip first line must be first index and header set null
+        if ($skip_first_line && $i == 0) continue;
+
+        // unpacking data
+        $values = str_getcsv($value);
+        $dict = map_mix($keys, $values);
+        $temp[] = $dict;
+    }
+
+    // returning
+    return $temp;
+}
+// end of csv extractor

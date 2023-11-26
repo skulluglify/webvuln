@@ -33,6 +33,34 @@ try {
     $body_content = new \Skfw\Cabbage\HttpBodyContent(json_unpack: $json_unpack);
     var_dump($body_content->body());
 
+    echo "<br/>";
+
+    $path_resolver = new \Skfw\Virtualize\VirtStdPathResolver("C:\\\\Users\Guest\'My Document'\Games");
+    echo str($path_resolver) . "<br/>";
+    echo $path_resolver->system() . "<br/>";
+    echo $path_resolver->drive() . "<br/>";
+
+    var_dump($path_resolver->paths());
+
+    echo "<br/>";
+
+    $path_resolver = new \Skfw\Virtualize\VirtStdPathResolver("file://foo/bar%20/book.log?param=go");
+    echo str($path_resolver) . "<br/>";
+    echo $path_resolver->system() . "<br/>";
+    echo $path_resolver->schema() . "<br/>";
+
+    var_dump($path_resolver->paths());
+
+    echo "<br/>";
+
+    $path_resolver = new \Skfw\Virtualize\VirtStdPathResolver("/home/user/local/share");
+    echo str($path_resolver) . "<br/>";
+    echo $path_resolver->system() . "<br/>";
+
+    var_dump($path_resolver->paths());
+
+    echo "<br/>";
+
 } catch (\Exception $e) {
     echo $e->getMessage();
 
