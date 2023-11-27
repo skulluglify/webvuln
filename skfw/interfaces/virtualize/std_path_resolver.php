@@ -18,5 +18,6 @@ interface IVirtStdPathResolver
     public function system(): string;
     public function drive(): string;
     public function schema(): string;
+    public function domain(): string;
     public function size(): int;
 }
