@@ -70,6 +70,8 @@ class VirtStdPathResolver implements IVirtStdPathResolver
             preg_match("/^[a-zA-Z]:\\\\/i", $path);
     }
 
+    // TODO: windows path can write like posix, fix it!
+    // ex. c:/Users/Guest/Downloads [Windows][Valid]
     /**
      * @throws Exception
      */
@@ -93,16 +95,17 @@ class VirtStdPathResolver implements IVirtStdPathResolver
         // unpack path
         $data = explode("\\", $path);
 
+        // cleaning path, trimming empty space
+        $data = array_map(fn(string $v): string => trim($v), $data);
+        $data = array_filter($data, fn(string $v): bool => $v !== "");
+        $data = [...$data];  // reset indexes
+
         // validation
         foreach ($data as $path)
         {
             if (!is_safe_name($path))
                 throw new Exception("path is not valid");
         }
-
-        // cleaning path, trimming empty space
-        $data = array_map(fn(string $v): string => trim($v), $data);
-        $data = array_filter($data, fn(string $v): bool => $v !== "");
 
         // returning
         return [
@@ -120,13 +123,16 @@ class VirtStdPathResolver implements IVirtStdPathResolver
         return $base ? $drive . ":\\\\" . join("\\", $paths) : join("\\", $paths);
     }
 
+    // TODO: have must be problem in network path, fix it!
+    // network path can combine other path system like posix or windows
+    // ex. file:///C:/Users/Guest/Documents/Public/index.html [Windows]
     /**
      * @throws Exception
      */
     private function _unpack_network_path(string $path): array
     {
-        // file://
-        // file://var/tmp/foo%20bar/book.log?param=go
+        // file:///
+        // file:///var/tmp/foo%20bar/book.log?param=go
         // ?param=go
 
         // get schema
@@ -148,16 +154,17 @@ class VirtStdPathResolver implements IVirtStdPathResolver
         // unpack path
         $data = explode("/", $path);
 
+        // cleaning path, trimming empty space
+        $data = array_map(fn(string $v): string => trim($v), $data);
+        $data = array_filter($data, fn(string $v): bool => $v !== "");
+        $data = [...$data];  // reset indexes
+
         // validation
         foreach ($data as $path)
         {
             if (!is_safe_name($path))
                 throw new Exception("path is not valid");
         }
-
-        // cleaning path, trimming empty space
-        $data = array_map(fn(string $v): string => trim($v), $data);
-        $data = array_filter($data, fn(string $v): bool => $v !== "");
 
         // returning
         return [
@@ -188,16 +195,17 @@ class VirtStdPathResolver implements IVirtStdPathResolver
         // unpack path
         $data = explode("/", $path);
 
+        // cleaning path, trimming empty space
+        $data = array_map(fn(string $v): string => trim($v), $data);
+        $data = array_filter($data, fn(string $v): bool => $v !== "");
+        $data = [...$data];  // reset indexes
+
         // validation
         foreach ($data as $path)
         {
             if (!is_safe_name($path))
                 throw new Exception("path is not valid");
         }
-
-        // cleaning path, trimming empty space
-        $data = array_map(fn(string $v): string => trim($v), $data);
-        $data = array_filter($data, fn(string $v): bool => $v !== "");
 
         // returning
         return [
@@ -212,7 +220,8 @@ class VirtStdPathResolver implements IVirtStdPathResolver
         // combine
         return $base ? "/" . join("/", $paths) : join("/", $paths);
     }
-    // class method, no need initial class object
+    // TODO: windows path can write like posix, fix it!
+    // ex. c:/Users/Guest/Downloads [Windows][Valid]
     static public function detect(string $path, bool $base = true): PathSys
     {
         if ($base) {
@@ -223,6 +232,7 @@ class VirtStdPathResolver implements IVirtStdPathResolver
         } else {
             // posix can do with char '\' like '/foo\ bar/tmp'
             if (str_contains($path, "/"))  return PathSys::POSIX;
+            // only network, base neither true and false, network path must be base
             else if (preg_match("/^([a-zA-Z]+):\/\//i", $path)) return PathSys::NETWORK;
             else if (str_contains($path, "\\")) return PathSys::WINDOWS;
             else return PathSys::UNKNOWN;
@@ -239,10 +249,45 @@ class VirtStdPathResolver implements IVirtStdPathResolver
         bool $base = true,
         PathSys $sys = PathSys::POSIX): string
     {
+        // abs path mix per path
+        // remove any trilling
+        // multiple any path supported
+        // ./../
+        $temp = [];
+
+        foreach ($paths as $path)
+        {
+            // trimming path, safe method
+            $path = trim($path);
+
+            if ($path === ".") continue;  // passing
+            else if ($path === "..") {
+                $n = count($temp);
+                if ($n > 0) {
+                    $j = $n - 1;
+                    $last = $temp[$j];
+                    if ($last !== "..") array_pop($temp);  // last temp path is absolute path
+                    else $temp[] = $path;  // last temp path is relative path
+                }
+                else if ($base) continue;  // no direct path on the top temp path
+                else $temp[] = $path;
+
+            } else $temp[] = $path;  // append new path on temp path
+        }
+
+        // data acquire, reset array indexes
+        $paths = [...$temp];
+
         $n = count($paths);  // length of paths
         return match ($sys) {
+            // only pain what you get, take alone!
             PathSys::WINDOWS => $base ? $drive . ":\\\\" . join("\\", $paths) : join("\\", $paths),
-            PathSys::NETWORK => $base ? $schema . "://" . join("/", $paths) : join("/", $paths),
+
+            // TODO: this network path not suitable for windows version, this it only combine with posix, fix it!
+            // network, like posix, first path can look like a slash, show triple slash on network + posix
+            PathSys::NETWORK => $base ? $schema . ":///" . join("/", $paths) : join("/", $paths),
+
+            // default on PHP, fun!
             PathSys::POSIX => $base ? "/" . join("/", $paths) : join("/", $paths),
 
             // $base or length of paths greater than 1, is not valid

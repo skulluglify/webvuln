@@ -2,16 +2,21 @@
 
 function is_safe_name(string $name): bool
 {
+    // trimming name string
+    $name = trim($name);
+
+    // validation name string
     if ($name !== "")
     {
         $data = str_split($name);
-        $alpha_num = "-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz";
+        // chars allowed, empty space, digits, alphabets, valid symbols
+        $stack = " -.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz";
         foreach ($data as $char)
         {
-            if (!str_contains($alpha_num, $char)) return false;
+            if (!str_contains($stack, $char)) return false;
         }
 
-        // all check's
+        // all checks
         return true;
     }
 

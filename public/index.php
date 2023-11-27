@@ -61,6 +61,18 @@ try {
 
     echo "<br/>";
 
+    $paths = [".", "..", "..", "foo", "bar", "..", "..", "tmp", "var", "run", ".", "..", "book.log"];
+    echo \Skfw\Virtualize\VirtStdPathResolver::pack($paths, base: true, sys: PathSys::NETWORK);
+    // ../../tmp/var/book.log | base: false
+    // /tmp/var/book.log | base: true
+
+    // fake root
+    // layer1 + layer2
+    // pack(paths)[base => true] + pack(paths)[base => true]
+
+    // on system
+    // pack(paths)[base => true] + pack(paths)[base => false]
+
 } catch (\Exception $e) {
     echo $e->getMessage();
 
