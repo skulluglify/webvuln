@@ -1,5 +1,24 @@
 <?php
 
+function is_safe_name(string $name): bool
+{
+    if ($name !== "")
+    {
+        $data = str_split($name);
+        $alpha_num = "-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz";
+        foreach ($data as $char)
+        {
+            if (!str_contains($alpha_num, $char)) return false;
+        }
+
+        // all check's
+        return true;
+    }
+
+    // empty string
+    return false;
+}
+
 // TODO: array|string, array is can take like references
 /**
  * @throws Exception

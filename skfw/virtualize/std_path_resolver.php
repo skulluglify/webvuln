@@ -45,12 +45,16 @@ class VirtStdPathResolver implements IVirtStdPathResolver
             $this->_drive = null;
 
         } else {
-            // $this->_origin_path = "";
-            // $this->_paths = [];
-            // $this->_schema = null;
-            // $this->_drive = null;
-            throw new Exception("unknown path system");
 
+            // throw error if path is not safe
+            if (!is_safe_name($path)) throw new Exception("unknown path system");
+
+            // paths, maybe took single path
+            $this->_path_sys = PathSys::UNKNOWN;
+            $this->_origin_path = $path;
+            $this->_paths = [$path];
+            $this->_schema = null;
+            $this->_drive = null;
         }
 
         $this->_size = count($this->_paths);
@@ -65,6 +69,10 @@ class VirtStdPathResolver implements IVirtStdPathResolver
             preg_match("/^([a-zA-Z]+):\/\//i", $path) or
             preg_match("/^[a-zA-Z]:\\\\/i", $path);
     }
+
+    /**
+     * @throws Exception
+     */
     private function _unpack_windows_path(string $path): array
     {
         // C:\\
@@ -85,6 +93,13 @@ class VirtStdPathResolver implements IVirtStdPathResolver
         // unpack path
         $data = explode("\\", $path);
 
+        // validation
+        foreach ($data as $path)
+        {
+            if (!is_safe_name($path))
+                throw new Exception("path is not valid");
+        }
+
         // cleaning path, trimming empty space
         $data = array_map(fn(string $v): string => trim($v), $data);
         $data = array_filter($data, fn(string $v): bool => $v !== "");
@@ -104,6 +119,10 @@ class VirtStdPathResolver implements IVirtStdPathResolver
         // combine
         return $base ? $drive . ":\\\\" . join("\\", $paths) : join("\\", $paths);
     }
+
+    /**
+     * @throws Exception
+     */
     private function _unpack_network_path(string $path): array
     {
         // file://
@@ -129,6 +148,13 @@ class VirtStdPathResolver implements IVirtStdPathResolver
         // unpack path
         $data = explode("/", $path);
 
+        // validation
+        foreach ($data as $path)
+        {
+            if (!is_safe_name($path))
+                throw new Exception("path is not valid");
+        }
+
         // cleaning path, trimming empty space
         $data = array_map(fn(string $v): string => trim($v), $data);
         $data = array_filter($data, fn(string $v): bool => $v !== "");
@@ -148,6 +174,10 @@ class VirtStdPathResolver implements IVirtStdPathResolver
         // combine
         return $base ? $schema . "://" . join("/", $paths) : join("/", $paths);
     }
+
+    /**
+     * @throws Exception
+     */
     private function _unpack_posix_path(string $path): array
     {
         // /var/tmp/foo\ bar/book.log
@@ -157,6 +187,13 @@ class VirtStdPathResolver implements IVirtStdPathResolver
 
         // unpack path
         $data = explode("/", $path);
+
+        // validation
+        foreach ($data as $path)
+        {
+            if (!is_safe_name($path))
+                throw new Exception("path is not valid");
+        }
 
         // cleaning path, trimming empty space
         $data = array_map(fn(string $v): string => trim($v), $data);
@@ -202,11 +239,15 @@ class VirtStdPathResolver implements IVirtStdPathResolver
         bool $base = true,
         PathSys $sys = PathSys::POSIX): string
     {
+        $n = count($paths);  // length of paths
         return match ($sys) {
             PathSys::WINDOWS => $base ? $drive . ":\\\\" . join("\\", $paths) : join("\\", $paths),
             PathSys::NETWORK => $base ? $schema . "://" . join("/", $paths) : join("/", $paths),
             PathSys::POSIX => $base ? "/" . join("/", $paths) : join("/", $paths),
-            PathSys::UNKNOWN => throw new Exception("unknown path system"),
+
+            // $base or length of paths greater than 1, is not valid
+            // maybe $paths took single path on unknown identify system are choice for path
+            PathSys::UNKNOWN => $base or $n !== 1 ? throw new Exception("unknown path system") : $paths[0],
         };
     }
     public function is_base_path(): bool
