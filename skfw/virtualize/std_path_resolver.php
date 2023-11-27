@@ -65,9 +65,10 @@ class VirtStdPathResolver implements IVirtStdPathResolver
     }
     private function _is_base_path(string $path): bool
     {
-        return preg_match("/^\//i", $path) or
-            preg_match("/^([a-zA-Z]+):\/\//i", $path) or
-            preg_match("/^[a-zA-Z]:\\\\/i", $path);
+        return preg_match("/^\//i", $path) or  // posix
+            preg_match("/^([a-zA-Z]+):\/\//i", $path) or  // network
+            preg_match("/^[a-zA-Z]:\\\\/i", $path);  // windows
+        // preg_match("/^[a-zA-Z]:(\\|\/)/i", $path);  // windows, new way
     }
 
     // TODO: windows path can write like posix, fix it!
