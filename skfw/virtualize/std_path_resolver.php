@@ -157,7 +157,7 @@ class VirtStdPathResolver implements IVirtStdPathResolver
         $paths = array_map(fn(string $path): string => str_contains($path, ' ') ? '"' . $path . '"' : $path, $paths);
 
         // combine, windows ordinary
-        return $base ? $drive . ':\\\\' . join('\\', $paths) : join('\\', $paths);
+        return $base ? strtoupper($drive) . ':\\\\' . join('\\', $paths) : join('\\', $paths);
     }
 
     static private function _pack_windows_path_v2(array $data, bool $base = true): string
