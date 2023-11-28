@@ -166,7 +166,7 @@ class VirtStdPathResolver implements IVirtStdPathResolver
         $drive = array_key_exists('drive', $data) ? $data['drive'] : 'C';
 
         // combine drive with lower case and path like posix!
-        $path = ($base ? strtolower($drive) . ':' : '') . self::_pack_posix_path($data, $base);
+        $path = ($base ? $drive . ':' : '') . self::_pack_posix_path($data, $base);
 
         // windows can't handle backslash for naming directory like posix!
         return str_replace("\ ", " ", $path);
