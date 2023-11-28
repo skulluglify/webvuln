@@ -20,7 +20,7 @@ readonly class Values implements IValues, Stringable {
     #[Override]
     public function __toString(): string
     {
-        return $this->first() ?? "";
+        return $this->first() ?? '';
     }
 
     #[Override]

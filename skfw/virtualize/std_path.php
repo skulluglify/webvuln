@@ -19,7 +19,7 @@ class VirtStdPath
         // workdir must be inside basedir
 
         $resolver = new VirtStdPathResolver($basedir);
-        if (!$resolver->is_base_path()) throw new Exception("base directory is not valid");
+        if (!$resolver->is_base_path()) throw new Exception('base directory is not valid');
         $this->_basedir = $resolver->pack($resolver->paths());
 
         // workdir must be checking first

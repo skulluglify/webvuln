@@ -13,7 +13,7 @@ class VirtStdIn implements IVirtStdContent, Stringable
 
     public function __construct(?VirtStdContent $content = null)
     {
-        $this->content = $content ?? new VirtStdContent(name: "php://input", readable: true, writable: false);
+        $this->content = $content ?? new VirtStdContent(name: 'php://input', readable: true, writable: false);
         $this->content->openHook();
     }
 
@@ -109,7 +109,7 @@ class VirtStdOut implements IVirtStdContent, Stringable
 
     public function __construct(?VirtStdContent $content = null)
     {
-        $this->content = $content ?? new VirtStdContent(name: "php://output", readable: false, writable: true);
+        $this->content = $content ?? new VirtStdContent(name: 'php://output', readable: false, writable: true);
         $this->content->openHook();
     }
 

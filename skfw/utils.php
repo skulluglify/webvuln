@@ -6,11 +6,11 @@ function is_safe_name(string $name): bool
     $name = trim($name);
 
     // validation name string
-    if ($name !== "")
+    if ($name !== '')
     {
         $data = str_split($name);
         // chars allowed, empty space, digits, alphabets, valid symbols
-        $stack = " -.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz";
+        $stack = ' -.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz';
         foreach ($data as $char)
         {
             if (!str_contains($stack, $char)) return false;
@@ -34,12 +34,12 @@ function safe_file_name(string $name): string
 
     $array_name = str_split($name);
 
-    $alpha_num = "-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz";
+    $alpha_num = '-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz';
     $array_alpha_num = str_split($alpha_num);
     $alpha_num_length = strlen($alpha_num);
 
     // name is empty string
-    if ($name === "")
+    if ($name === '')
     {
 
         $data = $array_alpha_num;
@@ -51,15 +51,15 @@ function safe_file_name(string $name): string
         shuffle($data);
 
         // returning
-        return "bk_" . join($data);  // start at 'bk_' for header
+        return 'bk_' . join($data);  // start at 'bk_' for header
     }
 
-    $temp = "";
+    $temp = '';
 
     foreach ($array_name as $char)
     {
         // character contains alpha numbers or empty spaces
-        if (str_contains($alpha_num, $char) or $char == " ")
+        if (str_contains($alpha_num, $char) or $char == ' ')
         {
 
             $temp .= $char;
@@ -80,11 +80,11 @@ function capitalize_each_word(string $text): string
 {
 
     $data = str_split($text);
-    $alpha_upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    $alpha_lower = "abcdefghijklmnopqrstuvwxyz";
+    $alpha_upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    $alpha_lower = 'abcdefghijklmnopqrstuvwxyz';
     $alpha = $alpha_upper . $alpha_lower;
 
-    $temp = "";
+    $temp = '';
     $f = 0;  // first word must be capital word
 
     foreach ($data as $char)
@@ -130,14 +130,14 @@ function str_comp_case(string $left, string $right, int $case = 1): bool
 function query_decode(string $query): array
 {
     // maybe query is URI component
-    $data = str_getcsv($query, "?");
-    $query = array_pop($data) ?? "";
+    $data = str_getcsv($query, '?');
+    $query = array_pop($data) ?? '';
 
     $temp = [];
-    $queries = str_getcsv($query, "&");
+    $queries = str_getcsv($query, '&');
     foreach ($queries as $query)
     {
-        $data = str_getcsv($query, "=");
+        $data = str_getcsv($query, '=');
         $length = count($data);
 
         if ($length > 0)
@@ -186,7 +186,7 @@ function query_decode(string $query): array
 function str(?Stringable $any): string
 {
     // nullable, i hate php!@#$
-    return $any !== null ? "".$any : "";
+    return $any !== null ? ''.$any : '';
 }
 
 
@@ -217,7 +217,7 @@ function unpack_csv_file(string $data, ?string $header = null, bool $skip_first_
     // set header by string with comma separator value
     $skip_first_line = $skip_first_line && $header !== null;
 
-    $lines = explode("\n", $data);
+    $lines = explode('\n', $data);
     $header = $header ?? array_shift($lines);  // remove head
     $keys = str_getcsv(strtolower($header));  // get keys by header, set to lower case
 
@@ -237,3 +237,66 @@ function unpack_csv_file(string $data, ?string $header = null, bool $skip_first_
     return $temp;
 }
 // end of csv extractor
+// server utils
+function get_domain_by_uri(string $uri): ?string
+{
+    $domain = null;
+    // $uri = "http://www.skfw.net/login?param=go";
+
+    $matches = [];
+    // ^
+    // (([a-z]+):\/\/|)
+    // (www[.]|)
+    // ([a-zA-Z0-9]+)(((-|_)[a-zA-Z0-9]+)+|)
+    // (([.]([a-zA-Z0-9]+)(((-|_)[a-zA-Z0-9]+)+|))+)
+    // (\/|$)
+
+    preg_match('/^(([a-z]+):\/\/|)(www[.]|)([a-zA-Z0-9]+)(((-|_)[a-zA-Z0-9]+)+|)(([.]([a-zA-Z0-9]+)(((-|_)[a-zA-Z0-9]+)+|))+)(\/|$)/i', $uri, $matches) . PHP_EOL;
+
+    if (count($matches) > 0) {
+        $url = $matches[0];
+
+        $matches = [];
+        preg_match('/(www[.]|)([a-zA-Z0-9]+)(((-|_)[a-zA-Z0-9]+)+|)(([.]([a-zA-Z0-9]+)(((-|_)[a-zA-Z0-9]+)+|))+)/i', $url, $matches) . PHP_EOL;
+
+        if (count($matches) > 0) {
+            $domain = $matches[0];
+        }
+    }
+
+    return $domain;
+}
+
+function get_schema_by_uri(string $uri): ?string
+{
+    $schema = null;
+    // $uri = "http://www.skfw.net/login?param=go";
+
+    $matches = [];
+    // ^
+    // ([a-z]+):\/\/
+
+    preg_match('/^([a-z]+):\/\//i', $uri, $matches) . PHP_EOL;
+    if (count($matches) > 0)
+    {
+        $schema = $matches[0];
+        $n = strlen($schema);
+
+        // remove last chars '://' from schema!
+        $schema = substr($schema, 0, $n - 3);
+    }
+
+    return $schema;
+}
+
+function get_param_by_uri(string $uri): ?string
+{
+    // $uri = "http://www.skfw.net/login?param=go";
+    // return: param=go
+    // /( 0_0)/
+
+    $data = explode('?', $uri, limit: 2);
+    if (count($data) > 1) return $data[1];
+    return null;
+}
+// end of server utils

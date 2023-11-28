@@ -29,15 +29,15 @@ class VirtStdFile extends VirtStdContent implements IVirtStdFile
     )
     {
         // collect from file directory
-        $name = $file["name"];
-        $type = $file["type"];
-        $size = $file["size"];
-        $path = $file["path"] ?? $file["tmp_name"];  // support for '$_FILES' variable
+        $name = $file['name'];
+        $type = $file['type'];
+        $size = $file['size'];
+        $path = $file['path'] ?? $file['tmp_name'];  // support for '$_FILES' variable
 
         if (empty($name) or empty($type) or empty($size) or empty($path))
         {
 
-            throw new VirtStdFileError("missing file info");
+            throw new VirtStdFileError('missing file info');
         }
 
         $data = file_get_contents($path);
@@ -49,7 +49,7 @@ class VirtStdFile extends VirtStdContent implements IVirtStdFile
         if (strtolower($type) !== strtolower($content_type))
         {
 
-            throw new VirtStdFileTypeDoNotMatch("file type don't match for 'Content-Type' header");
+            throw new VirtStdFileTypeDoNotMatch('file type don\'t match for \'Content-Type\' header');
         }
 
         $content_size = strlen($content);
@@ -57,7 +57,7 @@ class VirtStdFile extends VirtStdContent implements IVirtStdFile
         if ($size !== $content_size)
         {
 
-            throw new VirtStdFileSizeDoNotMatch("file size don't match for 'Content-Length' header");
+            throw new VirtStdFileSizeDoNotMatch('file size don\'t match for \'Content-Length\' header');
         }
 
         parent::__construct(

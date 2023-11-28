@@ -39,7 +39,7 @@ class HttpBodyContent extends VirtStdIn
         {
             try {
                 $this->seek(0);
-                $text = $this->readAll() ?? "{}";  // get content
+                $text = $this->readAll() ?? '{}';  // get content
                 return json_decode($text, associative: true) ?? [];
             } catch (Exception) {}
         }

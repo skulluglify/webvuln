@@ -20,10 +20,10 @@ class HttpHeaderCollector
         foreach ($server as $key => $value)
         {
             // $key = upper($key);
-            if (str_starts_with($key, "HTTP_"))
+            if (str_starts_with($key, 'HTTP_'))
             {
 
-                $key = str_replace("_", "-", substr($key, 5));
+                $key = str_replace('_', '-', substr($key, 5));
                 $key = capitalize_each_word($key);
                 $values = str_getcsv($value);
 

@@ -18,8 +18,8 @@ class HttpParamCollector
         $server = $server ?? $_SERVER;
         $get = $get ?? $_GET;  // backup, query
 
-        $query = array_key_exists("QUERY_STRING", $server) ? $server["QUERY_STRING"] : null;
-        $uri = array_key_exists("REQUEST_URI", $server) ? $server["REQUEST_URI"] : null;
+        $query = array_key_exists('QUERY_STRING', $server) ? $server['QUERY_STRING'] : null;
+        $uri = array_key_exists('REQUEST_URI', $server) ? $server['REQUEST_URI'] : null;
 
         $uri = $query ?? $uri;
         if ($uri !== null)

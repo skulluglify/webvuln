@@ -26,7 +26,7 @@ class VirtStdContent extends VirtStdContentAbs implements IVirtStdContent, Strin
 
     public function __construct(
         string $name,
-        string $content = "",
+        string $content = '',
         ?int $length = null,
         ?int $chunk = null,
         ?int $max_size = null,
@@ -66,7 +66,7 @@ class VirtStdContent extends VirtStdContentAbs implements IVirtStdContent, Strin
     {
 
         // short return content
-        return !$this->_closed ? $this->_content ?? "" : "";
+        return !$this->_closed ? $this->_content ?? '' : '';
     }
 
     private function _get_content(): ?string
@@ -100,15 +100,15 @@ class VirtStdContent extends VirtStdContentAbs implements IVirtStdContent, Strin
         $mode = null;
 
         if ($this->_readable && !$update) {
-            $mode = "r";
+            $mode = 'r';
 
         } else
             if ($this->_writable && $update) {
-                $mode = "w";
+                $mode = 'w';
 
             } else
                 if ($this->_readable && $this->_writable && $update) {
-                    $mode = "w+";
+                    $mode = 'w+';
                 }
 
         if ($mode !== null) {
@@ -116,7 +116,7 @@ class VirtStdContent extends VirtStdContentAbs implements IVirtStdContent, Strin
             if (!$update) {
 
                 // reset content and length
-                $this->_content = "";
+                $this->_content = '';
                 $this->_size = 0;
                 $this->_offset = 0;
                 // $this->_whence = SEEK_SET;
@@ -127,18 +127,18 @@ class VirtStdContent extends VirtStdContentAbs implements IVirtStdContent, Strin
             // fseek($stream, $offset, $this->_whence);  // no required, virt can handle it!
 
             // read data
-            if ($mode == "w" or $mode == "w+") {
+            if ($mode == 'w' or $mode == 'w+') {
 
                 fwrite($stream, $this->_content);
             }
 
-            if ($mode == "r" or $mode == "w+") {
+            if ($mode == 'r' or $mode == 'w+') {
 
                 // initialize
                 $chunk = $this->chunk;
                 $quota_size = $this->max_size;
                 $terminated = false;
-                $content = "";
+                $content = '';
                 $size = 0;
 
                 while (!feof($stream)) {
@@ -290,7 +290,7 @@ class VirtStdContent extends VirtStdContentAbs implements IVirtStdContent, Strin
     {
 
         $this->_closed = true;
-        $this->_content = "";
+        $this->_content = '';
         $this->_size = 0;
         return true;
     }

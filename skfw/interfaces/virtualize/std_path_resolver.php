@@ -12,10 +12,11 @@ interface IVirtStdPathResolver
         string $drive = "C",
         string $schema = "file",
         bool $base = true,
+        bool $win_path_v2 = false,
         PathSys $sys = PathSys::POSIX): string;
     public function is_base_path(): bool;
     public function paths(): array;
-    public function system(): string;
+    public function system(): PathSys;
     public function drive(): string;
     public function schema(): string;
     public function domain(): string;
