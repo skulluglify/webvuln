@@ -92,7 +92,7 @@ class VirtStdPathResolver implements IVirtStdPathResolver
         // C:\\Users\Guest\'My Document'\Games
 
         // shrinking multiple empty space for any path!
-        $path = preg_replace('/\s+/i', ' ', $path);
+        //$path = preg_replace('/\s+/i', ' ', $path);
 
         // get drive
         $drive = 'C';  // default, image local disk on 'C' drive
@@ -180,7 +180,7 @@ class VirtStdPathResolver implements IVirtStdPathResolver
     static private function _unpack_network_path(string $path): array
     {
         // empty space not allowed on network path
-        $path = preg_replace('/\s+/i', '', $path);
+        //$path = preg_replace('/\s+/i', '', $path);
 
         // file:///
         // file:///var/tmp/foo%20bar/book.log?param=go
@@ -270,9 +270,9 @@ class VirtStdPathResolver implements IVirtStdPathResolver
         // /var/tmp/foo\ bar/book.log
 
         // shrinking multiple empty space for any path!
-        $path = preg_replace('/\s+/i', ' ', $path);
+        //$path = preg_replace('/\s+/i', ' ', $path);
 
-        // removing all quotes, look like windows?
+        // remove quotes!
         $path = preg_replace('/[\'\"]/i', '', $path);
 
         // remove backslash
