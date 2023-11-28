@@ -130,7 +130,7 @@ function str_comp_case(string $left, string $right, int $case = 1): bool
 function query_decode(string $query): array
 {
     // maybe query is URI component
-    $data = str_getcsv($query, '?');
+    $data = explode('?', $query, limit: 2);
     $query = array_pop($data) ?? '';
 
     $temp = [];
@@ -295,8 +295,11 @@ function get_param_by_uri(string $uri): ?string
     // return: param=go
     // /( 0_0)/
 
+    // maybe param start with char '?'!
     $data = explode('?', $uri, limit: 2);
-    if (count($data) > 1) return $data[1];
+    // maybe param start with char '?', get index one!
+    // maybe param not start with char '?', get index zero!
+    if (count($data) > 1) return array_pop($data);
     return null;
 }
 // end of server utils
