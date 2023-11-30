@@ -2,8 +2,9 @@
 namespace Skfw\Cabbage;
 
 use Skfw\Enums\HttpStatusCode;
+use Skfw\Interfaces\Cabbage\IHttpStatusMessage;
 
-class HttpStatusMessage
+class HttpStatusMessage implements IHttpStatusMessage
 {
     private string $_message;
 
@@ -89,7 +90,7 @@ class HttpStatusMessage
         return $this->_message;
     }
 
-    public function getMessage(): string
+    public function message(): string
     {
         return $this->_message;
     }

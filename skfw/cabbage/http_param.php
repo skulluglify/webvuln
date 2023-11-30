@@ -1,14 +1,15 @@
 <?php
 namespace Skfw\Cabbage;
 
-use Skfw\Cabbage\Values;
+use Skfw\Interfaces\Cabbage\IHttpParam;
+use Skfw\Interfaces\Cabbage\IHttpParamCollector;
 use Skfw\Interfaces\Cabbage\IValues;
 
-readonly class HttpParam extends Values implements IValues
+readonly class HttpParam extends Values implements IValues, IHttpParam
 {
 }
 
-class HttpParamCollector
+class HttpParamCollector implements IHttpParamCollector
 {
     private array $_http_params;
 
@@ -53,13 +54,16 @@ class HttpParamCollector
         return $this->_http_params;
     }
 
-    public function param(string $name, int $case = 1): ?HttpParam
+    public function param(string $name, int $case = 1): ?IHttpParam
     {
         $name = trim($name);
         foreach ($this->_http_params as $param)
         {
-            $key = $param->getName();  // unsafe named comparison
-            if (str_comp_case($name, $key, $case)) return $param;
+            if ($param instanceof IHttpParam)
+            {
+                $key = $param->name();  // unsafe named comparison
+                if (str_comp_case($name, $key, $case)) return $param;
+            }
         }
 
         return null;

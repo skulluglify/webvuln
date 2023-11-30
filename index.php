@@ -17,4 +17,13 @@ function main(): void
     var_dump($temp);
 }
 
-main();
+//main();
+$data = [
+    "a" => 1,
+    "b" => 2,
+];
+
+foreach ($data as $v)
+{
+    echo $v . PHP_EOL;
+}

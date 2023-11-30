@@ -1,12 +1,12 @@
 <?php
 namespace Skfw\Cabbage;
 
-
 use Exception;
+use Skfw\Interfaces\Cabbage\IHttpBodyContent;
 use Skfw\Virtualize\VirtStdContent;
 use Skfw\Virtualize\VirtStdIn;
 
-class HttpBodyContent extends VirtStdIn
+class HttpBodyContent extends VirtStdIn implements IHttpBodyContent
 {
     private array $_body;  // body as array
     private bool $_json_unpack;
@@ -39,7 +39,7 @@ class HttpBodyContent extends VirtStdIn
         {
             try {
                 $this->seek(0);
-                $text = $this->readAll() ?? '{}';  // get content
+                $text = $this->buffer() ?? '{}';  // get content
                 return json_decode($text, associative: true) ?? [];
             } catch (Exception) {}
         }

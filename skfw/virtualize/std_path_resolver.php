@@ -110,10 +110,10 @@ class VirtStdPathResolver implements IVirtStdPathResolver
         // C:\\Users\Guest
         // c:/Users/Guest
 
-        $data = [];
+        //$data = [];
 
         // like posix
-        if (preg_match('/(\\[ ]|\/)/i', $path)) {
+        if (preg_match('/(\\\s|\/)/i', $path)) {
 
             // remove backslash
             $path = str_replace('\\', '', $path);
@@ -201,7 +201,7 @@ class VirtStdPathResolver implements IVirtStdPathResolver
         $path = urldecode($path);
 
         // maybe is a local storage!
-        $data = [];
+        //$data = [];
         if ($domain === null)
         {
             $data = match (self::detect($path)) {
@@ -241,12 +241,15 @@ class VirtStdPathResolver implements IVirtStdPathResolver
         //$paths = array_key_exists('paths', $data) ? $data['paths'] : [];
         //$paths = array_map(fn(string $path): string => trim($path), $paths);  // trimming path
 
+        // have domain, it s not file local storage, goto network! (must bet securing)
+        $schema = $schema === 'file' && $domain !== null ? 'https' : $schema;
+
         // TODO: fix it!
         // path contain domain tld, windows drive disk, posix like
         // schema: ^([a-zA-Z]+):\/\/
         // domain: [a-zA-Z0-9].+?[.]
-        // posix: \\[ ]|\/ ~ no take single path
-        // windows: [a-zA-Z]:(\\|\/) ~ only base ~ \\[ ]|\/ ~ posix like
+        // posix: \\\s|\/ ~ no take single path
+        // windows: [a-zA-Z]:(\\|\/) ~ only base ~ \\\s|\/ ~ posix like
 
         // check domain, check drive disk
         $address = $domain ?? '';
@@ -342,10 +345,10 @@ class VirtStdPathResolver implements IVirtStdPathResolver
             // TODO: maybe path took only file or directory name with special char for chaining
             // ex. My\ Documents, My\ Downloads, My\ Videos
             // posix can do with char '\' like '/foo\ bar/tmp'
-            // must be check with full, \\[ ] for empty space
+            // must be check with full, \\\s for empty space
 
             // welcome to posix family!
-            if (preg_match('/(\\[ ]|\/)/i', $path))  return PathSys::POSIX;
+            if (preg_match('/(\\\s|\/)/i', $path))  return PathSys::POSIX;
 
             // only network, base neither true and false, network path must be base
 
@@ -444,20 +447,40 @@ class VirtStdPathResolver implements IVirtStdPathResolver
     {
         return $this->_path_sys;
     }
-    public function drive(): string
+    public function drive(): ?string
     {
         return $this->_drive;  // unsafe for using
     }
-    public function schema(): string
+    public function schema(): ?string
     {
         return $this->_schema;  // unsafe for using
     }
-    public function domain(): string
+    public function domain(): ?string
     {
         return $this->_domain;  // unsafe for using
     }
     public function size(): int
     {
         return $this->_size;
+    }
+    public function join(string ...$paths): self
+    {
+        $wrapper = self::class;
+        foreach ($paths as $path)
+        {
+            $resolve = new $wrapper($path);
+            foreach ($resolve->paths() as $p)
+            {
+                $this->_paths[] = $p;
+            }
+        }
+        return $this;
+    }
+    public function path(): string
+    {
+        // make it suitable for php in any cases!
+        if (!$this->is_base_path()) return join(DIRECTORY_SEPARATOR, $this->_paths);  // no base!
+        $drive = $this->_drive !== null ? $this->_drive . ':' . DIRECTORY_SEPARATOR : '/';
+        return $drive . join(DIRECTORY_SEPARATOR, $this->_paths);
     }
 }

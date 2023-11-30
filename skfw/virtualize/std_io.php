@@ -6,7 +6,7 @@ use Override;
 use Skfw\Interfaces\Virtualize\IVirtStdContent;
 use Stringable;
 
-class VirtStdIn implements IVirtStdContent, Stringable
+class VirtStdIn implements Stringable, IVirtStdContent
 {
 
     private VirtStdContent $content;
@@ -14,7 +14,7 @@ class VirtStdIn implements IVirtStdContent, Stringable
     public function __construct(?VirtStdContent $content = null)
     {
         $this->content = $content ?? new VirtStdContent(name: 'php://input', readable: true, writable: false);
-        $this->content->openHook();
+        $this->content->open_hook();
     }
 
     #[Override]
@@ -25,17 +25,17 @@ class VirtStdIn implements IVirtStdContent, Stringable
     }
 
     #[Override]
-    public function getName(): string
+    public function name(): string
     {
 
-        return $this->content->getName();
+        return $this->content->name();
     }
 
     #[Override]
-    public function openHook(?string $filename = null, bool $update = false): bool
+    public function open_hook(?string $filename = null, bool $update = false): bool
     {
 
-        return $this->content->openHook(filename: $filename, update: $update);
+        return $this->content->open_hook(filename: $filename, update: $update);
     }
 
     #[Override]
@@ -46,10 +46,10 @@ class VirtStdIn implements IVirtStdContent, Stringable
     }
 
     #[Override]
-    public function readAll(): ?string
+    public function buffer(): ?string
     {
 
-        return $this->content->readAll();
+        return $this->content->buffer();
     }
 
     #[Override]
@@ -102,7 +102,7 @@ class VirtStdIn implements IVirtStdContent, Stringable
     }
 }
 
-class VirtStdOut implements IVirtStdContent, Stringable
+class VirtStdOut implements Stringable, IVirtStdContent
 {
 
     private VirtStdContent $content;
@@ -110,7 +110,7 @@ class VirtStdOut implements IVirtStdContent, Stringable
     public function __construct(?VirtStdContent $content = null)
     {
         $this->content = $content ?? new VirtStdContent(name: 'php://output', readable: false, writable: true);
-        $this->content->openHook();
+        $this->content->open_hook();
     }
 
     #[Override]
@@ -121,17 +121,17 @@ class VirtStdOut implements IVirtStdContent, Stringable
     }
 
     #[Override]
-    public function getName(): string
+    public function name(): string
     {
 
-        return $this->content->getName();
+        return $this->content->name();
     }
 
     #[Override]
-    public function openHook(?string $filename = null, bool $update = false): bool
+    public function open_hook(?string $filename = null, bool $update = false): bool
     {
 
-        return $this->content->openHook(filename: $filename, update: $update);
+        return $this->content->open_hook(filename: $filename, update: $update);
     }
 
     #[Override]
@@ -142,10 +142,10 @@ class VirtStdOut implements IVirtStdContent, Stringable
     }
 
     #[Override]
-    public function readAll(): ?string
+    public function buffer(): ?string
     {
 
-        return $this->content->readAll();
+        return $this->content->buffer();
     }
 
     #[Override]

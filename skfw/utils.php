@@ -182,11 +182,36 @@ function query_decode(string $query): array
     return $temp;
 }
 
-// casting into string, hook 'toString' function
-function str(?Stringable $any): string
+function str(mixed $any): string
 {
-    // nullable, i hate php!@#$
-    return $any !== null ? ''.$any : '';
+    // little shitty code to get stringify of all objective!
+
+    if (is_null($any)) return 'null';
+    else if (is_bool($any)) return $any ? 'true' : 'false';
+    else if (is_numeric($any)) return '' . $any;  // convert to string!
+    else if (is_string($any)) return $any;  // return itself!
+    else if (is_array($any)) return join(',', array_map(fn(mixed $v): string => str($v), $any));
+    else if (is_callable($any)) {
+        try {
+            $reflect = new ReflectionFunction($any);
+            return $reflect->getName();
+        } catch (Exception)
+        {
+            return 'anonymous';  // unable to get func name!
+        }
+    }
+    else if (is_object($any)) {
+
+        if ($any instanceof Stringable or method_exists($any, '__toString'))
+        {
+            // invoke method class!
+            $v = $any->__toString();
+            return str($v);  // maybe some funky places!
+        }
+
+        return 'object';
+    }
+    return 'undefined';
 }
 
 
@@ -241,23 +266,23 @@ function unpack_csv_file(string $data, ?string $header = null, bool $skip_first_
 function get_domain_by_uri(string $uri): ?string
 {
     $domain = null;
-    // $uri = "http://www.skfw.net/login?param=go";
+    // $uri = 'http://www.skfw.net/login?param=go';
 
     $matches = [];
     // ^
     // (([a-z]+):\/\/|)
     // (www[.]|)
     // ([a-zA-Z0-9]+)(((-|_)[a-zA-Z0-9]+)+|)
-    // (([.]([a-zA-Z0-9]+)(((-|_)[a-zA-Z0-9]+)+|))+)
+    // (([.]([a-zA-Z0-9]+)(((-|_)[a-zA-Z0-9]+)+|))+) (:([0-9]+)|)
     // (\/|$)
 
-    preg_match('/^(([a-z]+):\/\/|)(www[.]|)([a-zA-Z0-9]+)(((-|_)[a-zA-Z0-9]+)+|)(([.]([a-zA-Z0-9]+)(((-|_)[a-zA-Z0-9]+)+|))+)(\/|$)/i', $uri, $matches) . PHP_EOL;
+    preg_match('/^(([a-z]+):\/\/|)(www[.]|)([a-zA-Z0-9]+)(((-|_)[a-zA-Z0-9]+)+|)(([.]([a-zA-Z0-9]+)(((-|_)[a-zA-Z0-9]+)+|))+)(:([0-9]+)|)(\/|$)/i', $uri, $matches) . PHP_EOL;
 
     if (count($matches) > 0) {
         $url = $matches[0];
 
         $matches = [];
-        preg_match('/(www[.]|)([a-zA-Z0-9]+)(((-|_)[a-zA-Z0-9]+)+|)(([.]([a-zA-Z0-9]+)(((-|_)[a-zA-Z0-9]+)+|))+)/i', $url, $matches) . PHP_EOL;
+        preg_match('/(www[.]|)([a-zA-Z0-9]+)(((-|_)[a-zA-Z0-9]+)+|)(([.]([a-zA-Z0-9]+)(((-|_)[a-zA-Z0-9]+)+|))+)(:([0-9]+)|)/i', $url, $matches) . PHP_EOL;
 
         if (count($matches) > 0) {
             $domain = $matches[0];
@@ -270,7 +295,7 @@ function get_domain_by_uri(string $uri): ?string
 function get_schema_by_uri(string $uri): ?string
 {
     $schema = null;
-    // $uri = "http://www.skfw.net/login?param=go";
+    // $uri = 'http://www.skfw.net/login?param=go';
 
     $matches = [];
     // ^
@@ -291,7 +316,7 @@ function get_schema_by_uri(string $uri): ?string
 
 function get_param_by_uri(string $uri): ?string
 {
-    // $uri = "http://www.skfw.net/login?param=go";
+    // $uri = 'http://www.skfw.net/login?param=go';
     // return: param=go
     // /( 0_0)/
 

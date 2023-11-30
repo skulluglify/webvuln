@@ -23,12 +23,12 @@ readonly class Tag implements ITag, Stringable
         return $this->name;
     }
 
-    public function getName(): string
+    public function name(): string
     {
         return $this->name;
     }
 
-    public function getValue(): ?string
+    public function value(): ?string
     {
         return $this->value;
     }

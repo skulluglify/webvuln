@@ -2,10 +2,10 @@
 namespace Skfw\Interfaces;
 
 use PathSys;
+use Stringable;
 
-interface IVirtStdPathResolver
+interface IVirtStdPathResolver extends Stringable
 {
-    public function __toString(): string;
     static public function detect(string $path, bool $base = true): PathSys;
     static public function pack(
         array $paths,
@@ -17,8 +17,10 @@ interface IVirtStdPathResolver
     public function is_base_path(): bool;
     public function paths(): array;
     public function system(): PathSys;
-    public function drive(): string;
-    public function schema(): string;
-    public function domain(): string;
+    public function drive(): ?string;
+    public function schema(): ?string;
+    public function domain(): ?string;
     public function size(): int;
+    public function join(string ...$paths): self;
+    public function path(): string;
 }

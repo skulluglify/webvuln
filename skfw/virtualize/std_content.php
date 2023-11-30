@@ -7,7 +7,7 @@ use Skfw\Abstracts\Virtualize\VirtStdContentAbs;
 use Skfw\Interfaces\Virtualize\IVirtStdContent;
 use Stringable;
 
-class VirtStdContent extends VirtStdContentAbs implements IVirtStdContent, Stringable
+class VirtStdContent extends VirtStdContentAbs implements Stringable, IVirtStdContent
 {
 
     // private variables
@@ -22,7 +22,7 @@ class VirtStdContent extends VirtStdContentAbs implements IVirtStdContent, Strin
 
     // public configuration
     public int $chunk = 512;
-    public int $max_size = 16777216;  // 16MB
+    public int $max_size = 2097152;  // 2MB; 4194304; 4MB; 8388608; 8MB; 16777216; 16MB
 
     public function __construct(
         string $name,
@@ -82,14 +82,14 @@ class VirtStdContent extends VirtStdContentAbs implements IVirtStdContent, Strin
         return null;
     }
 
-    public function getName(): string
+    public function name(): string
     {
         // copy-host no-references
         return $this->_name;
     }
 
     #[Override]
-    public function openHook(?string $filename = null, bool $update = false): bool
+    public function open_hook(?string $filename = null, bool $update = false): bool
     {
         // hooked file by open read and write todo some update purposes.
 
@@ -207,7 +207,7 @@ class VirtStdContent extends VirtStdContentAbs implements IVirtStdContent, Strin
     }
 
     #[Override]
-    public function readAll(): ?string
+    public function buffer(): ?string
     {
 
         return $this->readable() ? $this->_get_content() : null;

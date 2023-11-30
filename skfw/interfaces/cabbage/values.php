@@ -1,12 +1,12 @@
 <?php
-
 namespace Skfw\Interfaces\Cabbage;
 
-interface IValues
-{
-    public function __toString(): string;
-    public function getName(): string;
+use Stringable;
 
-    public function getValues(): array;
-    public function first(): ?string;
+interface IValues extends Stringable
+{
+    public function name(): string;
+
+    public function values(): array;
+    public function shift(): ?string;
 }

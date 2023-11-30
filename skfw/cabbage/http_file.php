@@ -3,28 +3,29 @@ namespace Skfw\Cabbage;
 
 use Skfw\Errors\Virtualize\VirtStdFileSizeDoNotMatch;
 use Skfw\Errors\Virtualize\VirtStdFileTypeDoNotMatch;
+use Skfw\Interfaces\Cabbage\IHttpFile;
+use Skfw\Interfaces\Cabbage\IHttpFileCollector;
 use Skfw\Interfaces\IFile;
 use Skfw\Virtualize\VirtStdFile;
-use function Sodium\compare;
 
-class HttpFile extends VirtStdFile implements IFile
+class HttpFile extends VirtStdFile implements IFile, IHttpFile
 {
 
-    public function getSafeName(): string
+    public function safe_name(): string
     {
 
-        return $this->getFileName();
+        return $this->file_name();
     }
 
     public function mimetype(): string
     {
 
-        return $this->getFileType();
+        return $this->file_type();
     }
 }
 
 
-class HttpFileCollector
+class HttpFileCollector implements IHttpFileCollector
 {
 
     private array $_http_files;
@@ -66,13 +67,16 @@ class HttpFileCollector
         return $this->_http_files;
     }
 
-    public function file(string $name, int $case = 1): ?HttpFile
+    public function file(string $name, int $case = 1): ?IHttpFile
     {
         $name = trim($name);
         foreach ($this->_http_files as $file)
         {
-            $key = $file->getName();  // unsafe named comparison
-            if (str_comp_case($name, $key, $case)) return $file;
+            if ($file instanceof IHttpFile)
+            {
+                $key = $file->name();  // unsafe named comparison
+                if (str_comp_case($name, $key, $case)) return $file;
+            }
         }
 
         return null;

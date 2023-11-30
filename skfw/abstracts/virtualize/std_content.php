@@ -10,13 +10,13 @@ abstract class VirtStdContentAbs implements IVirtStdContent
     public int $max_size;
 
     abstract public function __toString(): string;
-    abstract public function GetName(): string;
+    abstract public function name(): string;
 
-    abstract public function openHook(?string $filename = null, bool $update = false): bool;
+    abstract public function open_hook(?string $filename = null, bool $update = false): bool;
 
     abstract public function read(int $length, int $offset = 0): ?string;
 
-    abstract public function readAll(): ?string;
+    abstract public function buffer(): ?string;
 
     abstract public function write(string $data): bool;
 

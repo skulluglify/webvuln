@@ -1,17 +1,17 @@
 <?php
-
 namespace Skfw\Interfaces\Virtualize;
 
-interface IVirtStdContent
-{
-    public function __toString(): string;  // std_content propagation
-    public function GetName(): string;
+use Stringable;
 
-    public function openHook(?string $filename = null, bool $update = false): bool;
+interface IVirtStdContent extends Stringable
+{
+    public function name(): string;
+
+    public function open_hook(?string $filename = null, bool $update = false): bool;
 
     public function read(int $length, int $offset = 0): ?string;
 
-    public function readAll(): ?string;
+    public function buffer(): ?string;
 
     public function write(string $data): bool;
 

@@ -1,54 +1,210 @@
 <?php
 namespace Skfw\Cabbage;
 
-use HttpHeader;
-use HttpParam;
+use Exception;
 use Skfw\Enums\HttpMethod;
 use Skfw\Enums\HttpStatusCode;
+use Skfw\Interfaces\Cabbage\IHttpBodyContent;
+use Skfw\Interfaces\Cabbage\IHttpFile;
+use Skfw\Interfaces\Cabbage\IHttpFileCollector;
+use Skfw\Interfaces\Cabbage\IHttpHeader;
+use Skfw\Interfaces\Cabbage\IHttpHeaderCollector;
+use Skfw\Interfaces\Cabbage\IHttpInfoRequest;
+use Skfw\Interfaces\Cabbage\IHttpParam;
+use Skfw\Interfaces\Cabbage\IHttpParamCollector;
+use Skfw\Interfaces\Cabbage\IHttpRequest;
+use Skfw\Interfaces\Cabbage\IHttpStatusMessage;
+use Skfw\Virtualize\VirtStdContent;
+use Stringable;
 
-class HttpRequest
+class HttpRequest implements Stringable, IHttpRequest
 {
-    private HttpMethod $_method;
-    private HttpStatusCode $_status_code;
+    private HttpInfoRequest $_info;
     private HttpStatusMessage $_status_message;
-    private array $_headers;
-    private array $_params;
-    private array $_files;
-    private ?string $_content;
+    private HttpHeaderCollector $_header_collector;
+    private HttpParamCollector $_param_collector;
+    private HttpFileCollector $_file_collector;
+    private HttpBodyContent $_body_content;
 
+    /**
+     * @throws Exception
+     */
+    public function __construct(?array          $server        = null,
+                                ?array          $get           = null,
+                                ?array          $post          = null,
+                                ?array          $files         = null,
+                                ?VirtStdContent $content       = null,
+                                ?int            $file_chunk    = null,
+                                ?int            $file_max_size = null,
+    )
+    {
+        $this->_info = new HttpInfoRequest($server);  // get http information from client request!
+
+        $status = $this->_info->status();  // get status code!
+        $this->_status_message = new HttpStatusMessage($status);  // get message from status code!
+
+        // object collectors!
+        $this->_header_collector = new HttpHeaderCollector($server);
+        $this->_param_collector = new HttpParamCollector(
+            $server,
+            get: $get,
+        );
+
+        // more files!
+        $this->_file_collector = new HttpFileCollector(
+            $files,
+            chunk: $file_chunk,
+            max_size: $file_max_size,
+        // readable: true,
+        // writable: false,
+        );
+
+        // body content is json unpack-able!
+        $content_type = $this->_header_collector->header('content-type');
+        $json_unpack = $content_type !== null && $content_type->shift() === 'application/json';
+
+        $this->_body_content = new HttpBodyContent($content, post: $post, json_unpack: $json_unpack);
+    }
+
+    public function __toString(): string
+    {
+        return self::class;  // get class name!
+    }
+    public function info(): IHttpInfoRequest
+    {
+        return $this->_info;
+    }
+    public function status_message(): IHttpStatusMessage
+    {
+        return $this->_status_message;
+    }
+    public function header_collector(): IHttpHeaderCollector
+    {
+        return $this->_header_collector;
+    }
+    public function param_collector(): IHttpParamCollector
+    {
+        return $this->_param_collector;
+    }
+    public function file_collector(): IHttpFileCollector
+    {
+        return $this->_file_collector;
+    }
+    public function body_content(): IHttpBodyContent
+    {
+        return $this->_body_content;
+    }
+    // merge methods from any implements!
+    public function status(): ?HttpStatusCode
+    {
+        return $this->info()->status();
+    }
+    public function server_name(): string
+    {
+        return $this->info()->server_name();
+    }
+    public function server_port(): int
+    {
+        return $this->info()->server_port();
+    }
+    public function server_addr(): string
+    {
+        return $this->info()->server_addr();
+    }
+    public function client_addr(): string
+    {
+        return $this->info()->client_addr();
+    }
+    public function client_port(): int
+    {
+        return $this->info()->client_port();
+    }
+    public function server(): string
+    {
+        return $this->info()->server();
+    }
+    public function gateway(): string
+    {
+        return $this->info()->gateway();
+    }
+    public function scheme(): string
+    {
+        return $this->info()->scheme();
+    }
+    public function protocol(): string
+    {
+        return $this->info()->protocol();
+    }
+    public function root(): string
+    {
+        return $this->info()->root();
+    }
+    public function uri(): string
+    {
+        return $this->info()->uri();
+    }
+    public function size(): int
+    {
+        return $this->info()->size();
+    }
+    public function type(): string
+    {
+        return $this->info()->type();
+    }
     public function method(): HttpMethod
     {
-
-        return HttpMethod::GET;
+        return $this->info()->method();
     }
-
-    public function status(): int
+    public function fast_cgi_role(): string
     {
-
-        return 200;
+        return $this->info()->fast_cgi_role();
+    }
+    public function timestamp(): int
+    {
+        return $this->info()->timestamp();
     }
 
     /**
-     * @return HttpHeader[]
+     * @throws Exception
      */
+    public function path(): string
+    {
+        return $this->info()->path();
+    }
+    public function message(): string
+    {
+        return $this->status_message()->message();
+    }
     public function headers(): array
     {
-
-        return [];
+        return $this->header_collector()->headers();
     }
-
-    /**
-     * @return HttpParam[]
-     */
+    public function header(string $name, int $case = 1): ?IHttpHeader
+    {
+        return $this->header_collector()->header($name, case: $case);
+    }
     public function params(): array
     {
-
-        return [];
+        return $this->param_collector()->params();
     }
-
-    public function content(): ?string
+    public function param(string $name, int $case = 1): ?IHttpParam
     {
-
-        return null;
+        return $this->param_collector()->param($name, case: $case);
+    }
+    public function files(): array
+    {
+        return $this->file_collector()->files();
+    }
+    public function file(string $name, int $case = 1): ?IHttpFile
+    {
+        return $this->file_collector()->file($name, case: $case);
+    }
+    public function body(): array
+    {
+        return $this->body_content()->body();
+    }
+    public function json(): array
+    {
+        return $this->body_content()->json();
     }
 }

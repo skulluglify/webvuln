@@ -5,7 +5,7 @@ use Override;
 use Skfw\Interfaces\Cabbage\IValues;
 use Stringable;
 
-readonly class Values implements IValues, Stringable {
+readonly class Values implements Stringable, IValues {
 
     private string $_name;
     private array $_values;
@@ -20,23 +20,23 @@ readonly class Values implements IValues, Stringable {
     #[Override]
     public function __toString(): string
     {
-        return $this->first() ?? '';
+        return $this->shift() ?? '';
     }
 
     #[Override]
-    public function getName(): string
+    public function name(): string
     {
         return $this->_name;
     }
 
     #[Override]
-    public function getValues(): array
+    public function values(): array
     {
         return $this->_values;
     }
 
     #[Override]
-    public function first(): ?string
+    public function shift(): ?string
     {
         $length = count($this->_values);
         if ($length > 0) return $this->_values[0];

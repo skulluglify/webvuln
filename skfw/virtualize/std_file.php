@@ -79,25 +79,25 @@ class VirtStdFile extends VirtStdContent implements IVirtStdFile
         $this->_file_size = $size;
     }
 
-    public function getFileName(): string
+    public function file_name(): string
     {
 
         return $this->_file_name;
     }
 
-    public function getFileType(): string
+    public function file_type(): string
     {
 
         return $this->_file_type;
     }
 
-    public function getFilePath(): string
+    public function file_path(): string
     {
 
         return $this->_file_path;
     }
 
-    public function getFileSize(): int
+    public function file_size(): int
     {
 
         return $this->_file_size;
