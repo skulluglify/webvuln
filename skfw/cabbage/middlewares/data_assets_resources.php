@@ -3,6 +3,7 @@ namespace Skfw\Cabbage\Middlewares;
 
 use Closure;
 use Exception;
+use finfo;
 use PathSys;
 use Skfw\Abstracts\cabbage\MiddlewareAbs;
 use Skfw\Cabbage\HttpHeader;
@@ -59,10 +60,11 @@ class DataAssetsResourcesMiddleware extends MiddlewareAbs implements IMiddleware
     }
     private function _render($path): ?HttpResponse
     {
-        $data = file_get_contents($path);
-        $content_type = new HttpHeader('content-type');
-        return !empty($data) ? new HttpResponse($data, headers: [
-            $content_type,
+        $content = file_get_contents($path);
+        $file_info = new finfo(FILEINFO_MIME_TYPE);
+        $content_type = $file_info->buffer($content);
+        return !empty($content) ? new HttpResponse($content, headers: [
+            new HttpHeader('content-type', values: [$content_type]),
         ]) : null;
     }
 }

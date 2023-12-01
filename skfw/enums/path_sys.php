@@ -2,8 +2,8 @@
 
 enum PathSys: string
 {
-    case WINDOWS = 'WINDOWS';  // C:\\, D:\\
-    case POSIX = 'POSIX';  // /home/user
-    case NETWORK = 'NETWORK';  // file:// ftp://
-    case UNKNOWN = 'UNKNOWN';
+    case WINDOWS = 'Windows';  // C:\\, D:\\
+    case POSIX = 'Posix';  // /home/user
+    case NETWORK = 'Network';  // file:// ftp://
+    case UNKNOWN = 'Unknown';
 }

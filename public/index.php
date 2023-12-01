@@ -11,7 +11,7 @@ try {
     $page = 'admin';
 
     $request = new HttpRequest();
-    $request->path();
+    $request_path = $request->path();
 
     $inspect = new CabbageInspectAppController($cwd);
     $routers = $inspect->get_direct_routers($page);
@@ -22,7 +22,10 @@ try {
             $path = $route->path();
             $method = $route->method();
 
-            echo $path . PHP_EOL;
+            echo str($request_path->equal($path, sandbox: true)) . '<br>';
+            echo $path . '<br>';
+            echo 'basename: '. $path->basename() . '<br>';
+            echo 'dirname: '. $path->dirname() . '<br>';
         }
     }
 

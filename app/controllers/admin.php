@@ -21,7 +21,7 @@ class AdminController {
         return [];
     }
 
-    #[PathTag(name: "Home Based", value: "/"), PathTag(name: "About", value: "/about")]
+    #[PathTag(name: "Home Based", value: "/"), PathTag(name: "About", value: "/about/policy")]
     public function home(HttpRequest $request): ?HttpResponse {
 
         return new HttpResponse('Hello, World!');

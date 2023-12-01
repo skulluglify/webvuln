@@ -328,3 +328,9 @@ function get_param_by_uri(string $uri): ?string
     return null;
 }
 // end of server utils
+
+// like array merging and concat behind on index!
+function array_snap(array &$data, array $values, int $offset = 0, int $length = 0): void
+{
+    for ($i = $offset; $i < $length; $i++) $data[] = $values[$i];
+}

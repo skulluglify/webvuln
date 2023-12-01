@@ -80,8 +80,8 @@ class CabbageInspectApp implements ICabbageInspectApp
         try {
             if (preg_match('/\w+/i', $page))
             {
+                // ex. AdminController class!
                 $controller = capitalize_each_word($page) . 'Controller';
-                print $controller . PHP_EOL;
 
                 $script_name = $page . '.php';
                 $script_src = $cwd . DIRECTORY_SEPARATOR . $this->_workdir . DIRECTORY_SEPARATOR . $script_name;
@@ -154,7 +154,8 @@ class CabbageInspectAppController extends CabbageInspectApp implements ICabbageI
                             $tag = new PathTag(...$args);  // create new instance!
                             $path = new VirtStdPathResolver($tag->value());
 
-                            yield new DirectRouterController($path, $method);
+                            // yield path sandbox and reflection method!
+                            yield new DirectRouterController($path->sandbox(), $method);
                         }
                     }
                 }

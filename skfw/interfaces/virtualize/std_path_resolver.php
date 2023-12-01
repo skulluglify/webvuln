@@ -6,8 +6,8 @@ use Stringable;
 
 interface IVirtStdPathResolver extends Stringable
 {
-    static public function detect(string $path, bool $base = true): PathSys;
-    static public function pack(
+    public static function detect(string $path, bool $base = true): PathSys;
+    public static function pack(
         array $values,
         string $drive = "C",
         string $schema = "file",
@@ -27,7 +27,14 @@ interface IVirtStdPathResolver extends Stringable
     public function is_sandbox(): bool;
     public function is_network(): bool;
     public function is_posix(): bool;
+    public function equal(string|IVirtStdPathResolver $path, bool $sandbox = false, bool $relative = false, int $case = 1): bool;
+    public function absolute(int $case = 1): IVirtStdPathResolver;
+    public function relative(int $case = 1): IVirtStdPathResolver;
     public function posix(?bool $base = null): string;
     public function network(?bool $base = null): string;
     public function windows(?bool $base = null): string;
+    public function repack(?array $values = null, ?string $drive = null, ?string $schema = null, ?bool $base = null, ?PathSys $sys = null): string;
+    public function dirname(): string;
+    public function basename(): string;
+
 }
