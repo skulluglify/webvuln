@@ -22,7 +22,7 @@ try {
     {
         foreach ($header->values() as $value)
         {
-            echo $header->name() . ': ' . $value . '<br/>';
+            echo $header->name() . ': ' . $value . PHP_EOL;
         }
     }
 
@@ -38,43 +38,45 @@ try {
     $body_content = new \Skfw\Cabbage\HttpBodyContent(json_unpack: $json_unpack);
     var_dump($body_content->body());
 
-    echo '<br/>';
+    echo PHP_EOL;
 
-    $path_resolver = new \Skfw\Virtualize\VirtStdPathResolver('C:\\\\Users\Guest\"My Document"\Games');
-    echo str($path_resolver) . '<br/>';
-    echo $path_resolver->system()->value . '<br/>';
-    echo $path_resolver->drive() . '<br/>';
+    $path_resolver = new \Skfw\Virtualize\VirtStdPathResolver('C:\\Users\Guest\"My Document"\Games');
+    echo str($path_resolver) . PHP_EOL;
+    echo $path_resolver->system()->value . PHP_EOL;
+    echo $path_resolver->drive() . PHP_EOL;
 
-    echo '<br/>';
+    echo PHP_EOL;
 
     $path_resolver = new \Skfw\Virtualize\VirtStdPathResolver('file:///foo/bar+bar2/book.log?param=go');
-    echo str($path_resolver) . '<br/>';
-    echo $path_resolver->system()->value . '<br/>';
-    echo $path_resolver->schema() . '<br/>';
+    echo str($path_resolver) . PHP_EOL;
+    echo $path_resolver->system()->value . PHP_EOL;
+    echo $path_resolver->schema() . PHP_EOL;
 
-    echo '<br/>';
+    echo PHP_EOL;
 
     $path_resolver = new \Skfw\Virtualize\VirtStdPathResolver('http://www.skfw.net:80/login?param=go');
-    echo str($path_resolver) . '<br/>';
-    echo $path_resolver->system()->value . '<br/>';
-    echo $path_resolver->schema() . '<br/>';
-    echo $path_resolver->domain() . '<br/>';
+    echo str($path_resolver) . PHP_EOL;
+    echo $path_resolver->system()->value . PHP_EOL;
+    echo $path_resolver->schema() . PHP_EOL;
+    echo $path_resolver->domain() . PHP_EOL;
 
-    echo '<br/>';
+    echo PHP_EOL;
 
     $path_resolver = new \Skfw\Virtualize\VirtStdPathResolver('file://C:/Users/Guest/My+Documents/Public/index.html?param=go');
-    echo str($path_resolver) . '<br/>';
-    echo $path_resolver->system()->value . '<br/>';
-    echo $path_resolver->schema() . '<br/>';
-    echo $path_resolver->drive() . '<br/>';
+    echo str($path_resolver) . PHP_EOL;
+    echo $path_resolver->system()->value . PHP_EOL;
+    echo $path_resolver->schema() . PHP_EOL;
+    echo $path_resolver->drive() . PHP_EOL;
 
-    echo '<br/>';
+    echo PHP_EOL;
 
-    $path_resolver = new \Skfw\Virtualize\VirtStdPathResolver('/home/user/local/share');
-    echo str($path_resolver) . '<br/>';
-    echo $path_resolver->system()->value . '<br/>';
+    $path_resolver = new \Skfw\Virtualize\VirtStdPathResolver(getcwd() . DIRECTORY_SEPARATOR . 'example');
+    echo str($path_resolver) . PHP_EOL;
+    echo $path_resolver->system()->value . PHP_EOL;
+    echo 'RELATIVE: ' . $path_resolver->relative()->posix() . PHP_EOL;
+    echo 'ABSOLUTE: ' . $path_resolver->absolute() . PHP_EOL;
 
-    echo '<br/>';
+    echo PHP_EOL;
 
     $paths = ['.', '..', '..', 'foo', 'bar', '..', '..', 'tmp', 'var', 'run', '.', '..', 'book logs', 'book.log'];
     echo \Skfw\Virtualize\VirtStdPathResolver::pack($paths, base: true, win_path_v2: true, sys: PathSys::WINDOWS);
@@ -84,19 +86,16 @@ try {
     // fake root
     // layer1 + layer2
     // pack(paths)[base => true] + pack(paths)[base => true]
-    echo '<br>';
+    echo PHP_EOL;
 
     $resolver = new \Skfw\Virtualize\VirtStdPathResolver('main.zip');
     $resolver->join('book.log');
-    echo $resolver->system()->name . "<br/>";
-    var_dump($resolver->paths());
+    echo $resolver->system()->name . PHP_EOL;
+    var_dump($resolver->values());
 
     // on system
     // pack(paths)[base => true] + pack(paths)[base => false]
-    echo '<br>';
-
-    $info = new HttpInfoRequest();
-    echo 'Content-Type: ' . $info->type() . '<br>';
+    echo PHP_EOL;
 
 } catch (\Exception $e) {
     echo $e->getMessage();

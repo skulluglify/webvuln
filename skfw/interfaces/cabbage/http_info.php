@@ -3,6 +3,7 @@ namespace Skfw\Interfaces\Cabbage;
 
 use Skfw\Enums\HttpMethod;
 use Skfw\Enums\HttpStatusCode;
+use Skfw\Interfaces\IVirtStdPathResolver;
 
 interface IHttpInfoRequest
 {
@@ -23,5 +24,5 @@ interface IHttpInfoRequest
     public function method(): HttpMethod;
     public function fast_cgi_role(): string;
     public function timestamp(): int;
-    public function path(): string;
+    public function path(): IVirtStdPathResolver;
 }

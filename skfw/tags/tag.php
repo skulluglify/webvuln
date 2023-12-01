@@ -6,8 +6,8 @@ use Attribute;
 use Skfw\interfaces\ITag;
 use Stringable;
 
-#[Attribute]
-readonly class Tag implements ITag, Stringable
+#[Attribute(Attribute::TARGET_ALL | Attribute::IS_REPEATABLE)]
+readonly class Tag implements Stringable, ITag
 {
     public string $name;
     public ?string $value;

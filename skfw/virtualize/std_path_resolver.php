@@ -10,45 +10,49 @@ use Skfw\Interfaces\IVirtStdPathResolver;
 
 class VirtStdPathResolver implements IVirtStdPathResolver
 {
-    private bool $_base_path;
+    private bool $_is_base_dir;
     private string $_origin_path;
-    private array $_paths;
+    private array $_values;
     private int $_size;
     private PathSys $_path_sys;
     private ?string $_drive;  // windows path only
     private ?string $_schema;  // net path only
     private ?string $_domain;  // net path only, domain way
     //private bool $_win_path_v2;
+    private bool $_is_sandbox;
 
     /**
      * @throws Exception
      */
-    public function __construct(string $path, bool $win_path_v2 = false)
+    public function __construct(string $path, bool $sandbox = false, bool $win_path_v2 = false)
     {
         //$this->_win_path_v2 = $win_path_v2;
-        $this->_base_path = $this->_is_base_path($path);
-        $this->_path_sys = $this->detect($path, $this->_base_path);
+        $this->_is_base_dir = $this->_is_base_dir($path);
+        $this->_is_sandbox = $sandbox;
+
+        // detection base path!
+        $this->_path_sys = $this->detect($path, $this->_is_base_dir);
 
         if ($this->_path_sys == PathSys::WINDOWS) {
             $data = $this->_unpack_windows_path($path);
-            $this->_origin_path = $win_path_v2 ? $this->_pack_windows_path_v2($data, $this->_base_path) : $this->_pack_windows_path($data, $this->_base_path);
-            $this->_paths = $data['paths'];
+            $this->_origin_path = $win_path_v2 ? $this->_pack_windows_path_v2($data, $this->_is_base_dir) : $this->_pack_windows_path($data, $this->_is_base_dir);
+            $this->_values = $data['values'];
             $this->_drive = $data['drive'];
             $this->_schema = null;
             $this->_domain = null;
 
         } else if ($this->_path_sys == PathSys::NETWORK) {
             $data = $this->_unpack_network_path($path);
-            $this->_origin_path = $this->_pack_network_path($data, $this->_base_path);
-            $this->_paths = $data['paths'];
+            $this->_origin_path = $this->_pack_network_path($data, $this->_is_base_dir);
+            $this->_values = $data['values'];
             $this->_schema = $data['schema'];
             $this->_domain = $data['domain'];
             $this->_drive = $data['drive'];
 
         } else if ($this->_path_sys == PathSys::POSIX) {
             $data = $this->_unpack_posix_path($path);
-            $this->_origin_path = $this->_pack_posix_path($data, $this->_base_path);
-            $this->_paths = $data['paths'];
+            $this->_origin_path = $this->_pack_posix_path($data, $this->_is_base_dir);
+            $this->_values = $data['values'];
             $this->_schema = null;
             $this->_drive = null;
             $this->_domain = null;
@@ -58,27 +62,27 @@ class VirtStdPathResolver implements IVirtStdPathResolver
             // throw error if path is not safe
             if (!is_safe_name($path)) throw new Exception('unknown path system');
 
-            // paths, maybe took single path
+            // values, maybe took single path
             $this->_path_sys = PathSys::UNKNOWN;
             $this->_origin_path = $path;
-            $this->_paths = [$path];
+            $this->_values = [$path];
             $this->_schema = null;
             $this->_drive = null;
             $this->_domain = null;
         }
 
-        $this->_size = count($this->_paths);
+        $this->_size = count($this->_values);
     }
     public function __toString(): string
     {
         return $this->_origin_path;
     }
-    static private function _is_base_path(string $path): bool
+    static private function _is_base_dir(string $path): bool
     {
         return preg_match('/^\//i', $path) or  // posix
             preg_match('/^([a-z]+):\/\//i', $path) or  // network, schema://
             preg_match('/^[A-Z]:(\\\\|\/)/i', $path);  // windows
-        // preg_match('/^[A-Z]:(\\|\/)/i', $path);  // windows, new way
+        // preg_match('/^[A-Z]:(\\\\|\/)/i', $path);  // windows, new way
     }
 
     // TODO: windows path can write like posix, fix it!
@@ -92,7 +96,7 @@ class VirtStdPathResolver implements IVirtStdPathResolver
         // C:\\Users\Guest\'My Document'\Games
 
         // shrinking multiple empty space for any path!
-        //$path = preg_replace('/\s+/i', ' ', $path);
+        //$path = preg_replace('/[ ]+/i', ' ', $path);
 
         // get drive
         $drive = 'C';  // default, image local disk on 'C' drive
@@ -103,7 +107,7 @@ class VirtStdPathResolver implements IVirtStdPathResolver
         if ($n > 1) $path = $data[1];  // after get drive, turn it back path
         else $path = '';  // only took drive
 
-        // removing all quotes
+        // removing all quotes!
         $path = preg_replace('/[\'\"]/i', '', $path);
 
         // windows can take over like posix, but keep origin with backslash
@@ -113,7 +117,7 @@ class VirtStdPathResolver implements IVirtStdPathResolver
         //$data = [];
 
         // like posix
-        if (preg_match('/(\\\s|\/)/i', $path)) {
+        if (preg_match('/(\/|\\\ )/i', $path)) {
 
             // remove backslash
             $path = str_replace('\\', '', $path);
@@ -143,21 +147,22 @@ class VirtStdPathResolver implements IVirtStdPathResolver
         // returning
         return [
             'drive' => $drive,
-            'paths' => $data,
+            'values' => $data,
         ];
     }
     static private function _pack_windows_path(array $data, bool $base = true): string
     {
         // collect data
         $drive = array_key_exists('drive', $data) ? $data['drive'] : 'C';
-        $paths = array_key_exists('paths', $data) ? $data['paths'] : [];
+        $values = array_key_exists('values', $data) ? $data['values'] : [];
 
         // wrapping path contains empty space with double quotes!
-        $paths = array_map(fn(string $path): string => trim($path), $paths);  // trimming path
-        $paths = array_map(fn(string $path): string => str_contains($path, ' ') ? '"' . $path . '"' : $path, $paths);
+        $values = array_map(fn(string $path): string => trim($path), $values);  // trimming path
+        $values = array_map(fn(string $path): string => str_contains($path, ' ') ? '"' . $path . '"' : $path, $values);
 
-        // combine, windows ordinary
-        return $base ? strtoupper($drive) . ':\\\\' . join('\\', $paths) : join('\\', $paths);
+        // Combine, Windows Path!
+        // Windows ignores double backslash! (Universal Naming Convention Path)
+        return $base ? strtoupper($drive) . ':\\' . join('\\', $values) : join('\\', $values);
     }
 
     static private function _pack_windows_path_v2(array $data, bool $base = true): string
@@ -180,7 +185,7 @@ class VirtStdPathResolver implements IVirtStdPathResolver
     static private function _unpack_network_path(string $path): array
     {
         // empty space not allowed on network path
-        //$path = preg_replace('/\s+/i', '', $path);
+        //$path = preg_replace('/[ ]+/i', '', $path);
 
         // file:///
         // file:///var/tmp/foo%20bar/book.log?param=go
@@ -215,14 +220,14 @@ class VirtStdPathResolver implements IVirtStdPathResolver
         }
 
         $drive = array_key_exists('drive', $data) ? $data['drive'] : null;
-        $paths = array_key_exists('paths', $data) ? $data['paths'] : [];
+        $values = array_key_exists('values', $data) ? $data['values'] : [];
 
         // returning
         return [
             'schema' => $schema,
             'drive' => $drive,
             'domain' => $domain,
-            'paths' => $paths,
+            'values' => $values,
         ];
     }
 
@@ -238,8 +243,8 @@ class VirtStdPathResolver implements IVirtStdPathResolver
         $schema = array_key_exists('schema', $data) ? $data['schema'] : 'file';
         $domain = array_key_exists('domain', $data) ? $data['domain'] : null;
         $drive = array_key_exists('drive', $data) ? $data['drive'] : null;
-        //$paths = array_key_exists('paths', $data) ? $data['paths'] : [];
-        //$paths = array_map(fn(string $path): string => trim($path), $paths);  // trimming path
+        //$values = array_key_exists('values', $data) ? $data['values'] : [];
+        //$values = array_map(fn(string $path): string => trim($path), $values);  // trimming path
 
         // have domain, it s not file local storage, goto network! (must bet securing)
         $schema = $schema === 'file' && $domain !== null ? 'https' : $schema;
@@ -248,8 +253,8 @@ class VirtStdPathResolver implements IVirtStdPathResolver
         // path contain domain tld, windows drive disk, posix like
         // schema: ^([a-zA-Z]+):\/\/
         // domain: [a-zA-Z0-9].+?[.]
-        // posix: \\\s|\/ ~ no take single path
-        // windows: [a-zA-Z]:(\\|\/) ~ only base ~ \\\s|\/ ~ posix like
+        // posix: \\[ ]|\/ ~ no take single path
+        // windows: [a-zA-Z]:(\\\\|\/) ~ only base ~ \\[ ]|\/ ~ posix like
 
         // check domain, check drive disk
         $address = $domain ?? '';
@@ -259,7 +264,7 @@ class VirtStdPathResolver implements IVirtStdPathResolver
 
         // network path can't handle backslash or any empty space for naming directory!
         $address = str_replace('\\', '', $address);
-        $address = preg_replace('/\s+/i', '+', $address);
+        $address = preg_replace('/[ ]+/i', '+', $address);
 
         // combine
         return $schema . '://' . $address;
@@ -273,9 +278,9 @@ class VirtStdPathResolver implements IVirtStdPathResolver
         // /var/tmp/foo\ bar/book.log
 
         // shrinking multiple empty space for any path!
-        //$path = preg_replace('/\s+/i', ' ', $path);
+        //$path = preg_replace('/[ ]+/i', ' ', $path);
 
-        // remove quotes!
+        // removing all quotes!
         $path = preg_replace('/[\'\"]/i', '', $path);
 
         // remove backslash
@@ -298,20 +303,20 @@ class VirtStdPathResolver implements IVirtStdPathResolver
 
         // returning
         return [
-            'paths' => $data,
+            'values' => $data,
         ];
     }
     static private function _pack_posix_path(array $data, bool $base = true): string
     {
         // collect data
-        $paths = array_key_exists('paths', $data) ? $data['paths'] : [];
+        $values = array_key_exists('values', $data) ? $data['values'] : [];
 
         // replace all empty space directory with backslash
-        $paths = array_map(fn(string $path): string => trim($path), $paths);  // trimming path
-        $paths = array_map(fn(string $path): string => str_replace(' ', '\\ ', $path), $paths);
+        $values = array_map(fn(string $path): string => trim($path), $values);  // trimming path
+        $values = array_map(fn(string $path): string => str_replace(' ', '\\ ', $path), $values);
 
         // combine
-        return $base ? '/' . join('/', $paths) : join('/', $paths);
+        return $base ? '/' . join('/', $values) : join('/', $values);
     }
     // TODO: windows path can write like posix, fix it!
     // ex. c:/Users/Guest/Downloads [Windows][Valid]
@@ -325,7 +330,7 @@ class VirtStdPathResolver implements IVirtStdPathResolver
             if (preg_match('/^\//i', $path)) return PathSys::POSIX;
 
             // network can combine with posix, windows, or domain with tld main service
-            // full spec: ^([a-zA-Z]+):\/\/(\/|[a-zA-Z]:(\\|\/)|[a-zA-Z0-9].+?[.])
+            // full spec: ^([a-zA-Z]+):\/\/(\/|[a-zA-Z]:(\\\\|\/)|[a-zA-Z0-9].+?[.])
             // short way: ^([a-zA-Z]+):\/\/
 
             else if (preg_match('/^([a-z]+):\/\//i', $path)) return PathSys::NETWORK;
@@ -345,10 +350,10 @@ class VirtStdPathResolver implements IVirtStdPathResolver
             // TODO: maybe path took only file or directory name with special char for chaining
             // ex. My\ Documents, My\ Downloads, My\ Videos
             // posix can do with char '\' like '/foo\ bar/tmp'
-            // must be check with full, \\\s for empty space
+            // must be check with full, \\[ ] for empty space
 
             // welcome to posix family!
-            if (preg_match('/(\\\s|\/)/i', $path))  return PathSys::POSIX;
+            if (preg_match('/(\/|\\\ )/i', $path))  return PathSys::POSIX;
 
             // only network, base neither true and false, network path must be base
 
@@ -358,7 +363,7 @@ class VirtStdPathResolver implements IVirtStdPathResolver
             // the idea, windows path must be more selection on path
             // like slash or backslash for main idea
 
-            else if (preg_match('/(\\|\/)/i', $path)) return PathSys::WINDOWS;
+            else if (preg_match('/(\\\\|\/)/i', $path)) return PathSys::WINDOWS;
 
             // single path, like file or directory name only
 
@@ -370,7 +375,7 @@ class VirtStdPathResolver implements IVirtStdPathResolver
      * @throws Exception
      */
     static public function pack(
-        array $paths,
+        array $values,
         string $drive = 'C',  // local disk
         string $schema = 'file',  // local storage
         bool $base = true,
@@ -383,7 +388,7 @@ class VirtStdPathResolver implements IVirtStdPathResolver
         // ./../
         $temp = [];
 
-        foreach ($paths as $path)
+        foreach ($values as $path)
         {
             // trimming path, safe method
             $path = trim($path);
@@ -404,44 +409,44 @@ class VirtStdPathResolver implements IVirtStdPathResolver
         }
 
         // data acquire, reset array indexes
-        $paths = [...$temp];
+        $values = [...$temp];
 
-        $n = count($paths);  // length of paths
+        $n = count($values);  // length of values
         return match ($sys) {
             // only pain what you get, take alone!
             PathSys::WINDOWS => $win_path_v2 ? self::_pack_windows_path_v2([
                 'drive' => $drive,
-                'paths' => $paths,
-            ]) : self::_pack_windows_path([
+                'values' => $values,
+            ], base: $base) : self::_pack_windows_path([
                 'drive' => $drive,
-                'paths' => $paths,
-            ]),
+                'values' => $values,
+            ], base: $base),
 
             // TODO: this network path not suitable for windows version, this it only combine with posix, fix it!
             // network, like posix, first path can look like a slash, show triple slash on network + posix
             PathSys::NETWORK => self::_pack_network_path([
                 'schema' => $schema,
                 'drive' => $drive,
-                'paths' => $paths,
-            ], $base),
+                'values' => $values,
+            ], base: $base),
 
             // default on PHP, fun!
             PathSys::POSIX => self::_pack_posix_path([
-                'paths' => $paths,
-            ], $base),
+                'values' => $values,
+            ], base: $base),
 
-            // $base or length of paths greater than 1, is not valid
-            // maybe $paths took single path on unknown identify system are choice for path
-            PathSys::UNKNOWN => $base or $n !== 1 ? throw new Exception('unknown path system') : $paths[0],
+            // $base or length of values greater than 1, is not valid
+            // maybe $values took single path on unknown identify system are choice for path
+            PathSys::UNKNOWN => throw new Exception('unknown system path'),
         };
     }
-    public function is_base_path(): bool
+    public function is_base_dir(): bool
     {
-        return $this->_base_path;
+        return $this->_is_base_dir;
     }
-    public function paths(): array
+    public function values(): array
     {
-        return $this->_paths;  // unsafe for using
+        return $this->_values;  // unsafe for using
     }
     public function system(): PathSys
     {
@@ -463,15 +468,15 @@ class VirtStdPathResolver implements IVirtStdPathResolver
     {
         return $this->_size;
     }
-    public function join(string ...$paths): self
+    public function join(string ...$values): self
     {
         $wrapper = self::class;
-        foreach ($paths as $path)
+        foreach ($values as $path)
         {
             $resolve = new $wrapper($path);
-            foreach ($resolve->paths() as $p)
+            foreach ($resolve->values() as $p)
             {
-                $this->_paths[] = $p;
+                $this->_values[] = $p;
             }
         }
         return $this;
@@ -479,8 +484,212 @@ class VirtStdPathResolver implements IVirtStdPathResolver
     public function path(): string
     {
         // make it suitable for php in any cases!
-        if (!$this->is_base_path()) return join(DIRECTORY_SEPARATOR, $this->_paths);  // no base!
+        if (!$this->is_base_dir()) return join(DIRECTORY_SEPARATOR, $this->_values);  // no base!
         $drive = $this->_drive !== null ? $this->_drive . ':' . DIRECTORY_SEPARATOR : '/';
-        return $drive . join(DIRECTORY_SEPARATOR, $this->_paths);
+        return $drive . join(DIRECTORY_SEPARATOR, $this->_values);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function sandbox(?PathSys $sys = null): IVirtStdPathResolver
+    {
+        $wrapper = self::class;
+
+        // default system using!
+        $system = $this->_path_sys !== PathSys::UNKNOWN ? $this->_path_sys : PathSys::POSIX;
+        $pack = self::pack($this->_values, base: true, sys: $sys ?? $system);
+        return new $wrapper($pack, sandbox: true);
+    }
+    /**
+     * @return bool
+     */
+    public function is_sandbox(): bool
+    {
+        // check is sandbox or not!
+        return $this->_is_sandbox;
+    }
+    /**
+     * @return bool
+     */
+    public function is_network(): bool
+    {
+        // check is sandbox or not!
+        return $this->_path_sys === PathSys::NETWORK;
+    }
+    /**
+     * @return bool
+     */
+    public function is_posix(): bool
+    {
+        // check is sandbox or not!
+        return $this->_path_sys === PathSys::POSIX;
+    }
+    /**
+     * @param string|IVirtStdPathResolver $path
+     * @param bool $sandbox
+     * @param int $case
+     * @return bool
+     * @throws Exception
+     */
+    public function equal(string|IVirtStdPathResolver $path, bool $sandbox = true, int $case = 1): bool
+    {
+        $wrapper = self::class;  // wrapper object class itself!
+        $other = $path instanceof IVirtStdPathResolver ? $path : new $wrapper($path);
+        $other = $sandbox ? $other->sandbox() : $other;
+
+        // basedir / workdir
+        // relative / absolute
+
+        //if ($this->_size !== count($other->values())) return false;
+
+        foreach ($this->_values as $path)
+        {
+
+        }
+
+        return false;
+    }
+
+    /**
+     * @param int $case
+     * @return IVirtStdPathResolver
+     * @throws Exception
+     */
+    public function absolute(int $case = 1): IVirtStdPathResolver
+    {
+        $wrapper = self::class;
+
+        $is_sandbox = $this->is_sandbox();
+        $is_base_dir = $this->is_base_dir();
+        $is_network = $this->is_network();
+
+        // network must be base dir
+        // sandbox mode can't determine base directory with this class!
+        if ($is_sandbox or $is_network) return $this;
+        if ($is_base_dir) return $this;  // is base directory!
+
+        $base_dir = getcwd();
+        if (empty($base_dir)) throw new Exception('base directory not give readable permission');
+        $base = new VirtStdPathResolver($base_dir);
+
+        if ($this->size() > 0)
+        {
+
+            $idx = 0;
+            $found = false;
+            $values = $this->values();
+            $temp = [];
+
+            // find equal path and merging!
+            foreach ($base->values() as $path)
+            {
+                $value = $values[$idx];
+                if (str_comp_case($path, $value, $case))
+                {
+                    $found = true;
+                    $idx += 1;  // next value of path!
+                    if ($this->size() <= $idx) break;
+                }
+                if ($found) break;  // snapped!
+                $temp[] = $path;  // append, on iteration!
+            }
+
+            // combine next path on values!
+            for ($i = $idx; $i < $this->size(); $i++) $temp[] = $values[$i];
+
+            // re-packing path on virtual std path resolver!
+            $system = $this->system() !== PathSys::UNKNOWN ? $this->system() : $base->system();
+            $sys = $system !== PathSys::UNKNOWN ? $system : PathSys::POSIX;
+            $pack = self::pack($temp, base: true, sys: $sys);
+            return new $wrapper($pack);
+        }
+
+        return $base;
+    }
+
+    /**
+     * @param int $case
+     * @return IVirtStdPathResolver
+     * @throws Exception
+     */
+    public function relative(int $case = 1): IVirtStdPathResolver
+    {
+        $wrapper = self::class;
+
+        $is_sandbox = $this->is_sandbox();
+        $is_base_dir = $this->is_base_dir();
+        $is_network = $this->is_network();
+
+        // network must be base dir
+        // sandbox mode can't determine base directory with this class!
+        if ($is_sandbox or $is_network) return $this;
+        if (!$is_base_dir) return $this;  // is not base directory!
+
+        $base_dir = getcwd();
+        if (empty($base_dir)) throw new Exception('base directory not give readable permission');
+        $base = new VirtStdPathResolver($base_dir);
+
+        // get absolute path!
+        $absolute = $this->absolute($case);
+
+        if ($absolute->size() > 0)
+        {
+            $idx = 0;
+            $temp = [];
+            $values = $absolute->values();
+            foreach ($base->values() as $i => $path)
+            {
+                if ($i < $absolute->size())
+                {
+                    $value = $values[$idx];  // get current value!
+                    if (str_comp_case($path, $value, $case)) $idx += 1;
+                }
+            }
+
+            // combine continue path values into temporary path!
+            for ($i = $idx; $i < $absolute->size(); $i++) $temp[] = $values[$i];
+
+            // re-packing path on virtual std path resolver!
+            $system = $this->system() !== PathSys::UNKNOWN ? $this->system() : $absolute->system();
+            $sys = $system !== PathSys::UNKNOWN ? $system : PathSys::POSIX;
+            $pack = self::pack($temp, base: false, sys: $sys);
+            return new $wrapper($pack);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param bool|null $base
+     * @return string
+     * @throws Exception
+     */
+    public function posix(?bool $base = null): string
+    {
+        $base = $base ?? $this->is_base_dir();
+        return self::pack($this->values(), base: $base, sys: PathSys::POSIX);
+    }
+
+    /**
+     * @param bool|null $base
+     * @return string
+     * @throws Exception
+     */
+    public function network(?bool $base = null): string
+    {
+        $base = $base ?? $this->is_base_dir();
+        return self::pack($this->values(), base: $base, sys: PathSys::NETWORK);
+    }
+
+    /**
+     * @param bool|null $base
+     * @return string
+     * @throws Exception
+     */
+    public function windows(?bool $base = null): string
+    {
+        $base = $base ?? $this->is_base_dir();
+        return self::pack($this->values(), base: $base, sys: PathSys::WINDOWS);
     }
 }

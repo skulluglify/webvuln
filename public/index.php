@@ -1,13 +1,32 @@
 <?php
 include '../skfw/autoload.php';
 
+use Skfw\Cabbage\HttpRequest;
+use Skfw\Cabbage\Controllers\CabbageInspectAppController;
+use Skfw\Interfaces\Cabbage\Controllers\IDirectRouterController;
+
+$cwd = dirname(__FILE__) . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'app';
+
 try {
+    $page = 'admin';
 
-    $request = new Skfw\Cabbage\HttpRequest();
+    $request = new HttpRequest();
+    $request->path();
 
-    $path = '../app/data/public';
-    $middleware = new \Skfw\Cabbage\Middlewares\DataAssetsResourcesMiddleware($path);
-    $response = $middleware->handler($request);
-    if (!empty($response)) $response->sender();
+    $inspect = new CabbageInspectAppController($cwd);
+    $routers = $inspect->get_direct_routers($page);
+    foreach ($routers as $route)
+    {
+        if ($route instanceof IDirectRouterController)
+        {
+            $path = $route->path();
+            $method = $route->method();
 
-} catch (Exception) {}
+            echo $path . PHP_EOL;
+        }
+    }
+
+} catch (Exception)
+{
+    print 'failed get direct routers';
+}

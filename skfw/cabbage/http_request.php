@@ -4,6 +4,8 @@ namespace Skfw\Cabbage;
 use Exception;
 use Skfw\Enums\HttpMethod;
 use Skfw\Enums\HttpStatusCode;
+use Skfw\Errors\Virtualize\VirtStdFileSizeDoNotMatch;
+use Skfw\Errors\Virtualize\VirtStdFileTypeDoNotMatch;
 use Skfw\Interfaces\Cabbage\IHttpBodyContent;
 use Skfw\Interfaces\Cabbage\IHttpFile;
 use Skfw\Interfaces\Cabbage\IHttpFileCollector;
@@ -14,6 +16,7 @@ use Skfw\Interfaces\Cabbage\IHttpParam;
 use Skfw\Interfaces\Cabbage\IHttpParamCollector;
 use Skfw\Interfaces\Cabbage\IHttpRequest;
 use Skfw\Interfaces\Cabbage\IHttpStatusMessage;
+use Skfw\Interfaces\IVirtStdPathResolver;
 use Skfw\Virtualize\VirtStdContent;
 use Stringable;
 
@@ -27,15 +30,26 @@ class HttpRequest implements Stringable, IHttpRequest
     private HttpBodyContent $_body_content;
 
     /**
+     * @param array|null $server
+     * @param array|null $get
+     * @param array|null $post
+     * @param array|null $files
+     * @param VirtStdContent|null $content
+     * @param int|null $file_chunk
+     * @param int|null $file_max_size
+     * @param int|null $stdin_max_size
+     * @throws VirtStdFileSizeDoNotMatch
+     * @throws VirtStdFileTypeDoNotMatch
      * @throws Exception
      */
-    public function __construct(?array          $server        = null,
-                                ?array          $get           = null,
-                                ?array          $post          = null,
-                                ?array          $files         = null,
-                                ?VirtStdContent $content       = null,
-                                ?int            $file_chunk    = null,
-                                ?int            $file_max_size = null,
+    public function __construct(?array $server = null,
+                                ?array $get = null,
+                                ?array $post = null,
+                                ?array $files = null,
+                                ?VirtStdContent $content = null,
+                                ?int $file_chunk = null,
+                                ?int $file_max_size = null,
+                                ?int $stdin_max_size = null,
     )
     {
         $this->_info = new HttpInfoRequest($server);  // get http information from client request!
@@ -45,25 +59,16 @@ class HttpRequest implements Stringable, IHttpRequest
 
         // object collectors!
         $this->_header_collector = new HttpHeaderCollector($server);
-        $this->_param_collector = new HttpParamCollector(
-            $server,
-            get: $get,
-        );
+        $this->_param_collector = new HttpParamCollector($server, get: $get);
 
         // more files!
-        $this->_file_collector = new HttpFileCollector(
-            $files,
-            chunk: $file_chunk,
-            max_size: $file_max_size,
-        // readable: true,
-        // writable: false,
-        );
+        $this->_file_collector = new HttpFileCollector($files, chunk: $file_chunk, max_size: $file_max_size);
 
         // body content is json unpack-able!
         $content_type = $this->_header_collector->header('content-type');
         $json_unpack = $content_type !== null && $content_type->shift() === 'application/json';
 
-        $this->_body_content = new HttpBodyContent($content, post: $post, json_unpack: $json_unpack);
+        $this->_body_content = new HttpBodyContent($content, post: $post, max_size: $stdin_max_size, json_unpack: $json_unpack);
     }
 
     public function __toString(): string
@@ -167,7 +172,7 @@ class HttpRequest implements Stringable, IHttpRequest
     /**
      * @throws Exception
      */
-    public function path(): string
+    public function path(): IVirtStdPathResolver
     {
         return $this->info()->path();
     }

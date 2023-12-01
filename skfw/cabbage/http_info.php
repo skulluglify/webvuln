@@ -6,6 +6,7 @@ use PathSys;
 use Skfw\Enums\HttpMethod;
 use Skfw\Enums\HttpStatusCode;
 use Skfw\Interfaces\Cabbage\IHttpInfoRequest;
+use Skfw\Interfaces\IVirtStdPathResolver;
 use Skfw\Virtualize\VirtStdPathResolver;
 
 class HttpInfoRequest implements IHttpInfoRequest
@@ -76,7 +77,10 @@ class HttpInfoRequest implements IHttpInfoRequest
         $this->_request_time = intval($request_time);  // try parsing!
 
         // path from remote based!
+        // sandbox path from document uri!
         $this->_path = new VirtStdPathResolver($this->_document_uri);
+        $this->_path = $this->_path->sandbox();
+
     }
 
     public function status(): ?HttpStatusCode
@@ -151,8 +155,8 @@ class HttpInfoRequest implements IHttpInfoRequest
     /**
      * @throws Exception
      */
-    public function path(): string
+    public function path(): IVirtStdPathResolver
     {
-        return VirtStdPathResolver::pack($this->_path->paths(), sys: PathSys::POSIX);
+        return $this->_path;
     }
 }

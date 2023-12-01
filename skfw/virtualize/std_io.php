@@ -11,9 +11,9 @@ class VirtStdIn implements Stringable, IVirtStdContent
 
     private VirtStdContent $content;
 
-    public function __construct(?VirtStdContent $content = null)
+    public function __construct(?VirtStdContent $content = null, ?int $max_size = null)
     {
-        $this->content = $content ?? new VirtStdContent(name: 'php://input', readable: true, writable: false);
+        $this->content = $content ?? new VirtStdContent(name: 'php://input', max_size: $max_size, readable: true, writable: false);
         $this->content->open_hook();
     }
 

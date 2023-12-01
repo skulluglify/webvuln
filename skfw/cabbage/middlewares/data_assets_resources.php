@@ -1,8 +1,10 @@
 <?php
 namespace Skfw\Cabbage\Middlewares;
 
+use Closure;
 use Exception;
 use PathSys;
+use Skfw\Abstracts\cabbage\MiddlewareAbs;
 use Skfw\Cabbage\HttpHeader;
 use Skfw\Cabbage\HttpResponse;
 use Skfw\Interfaces\Cabbage\IHttpRequest;
@@ -10,7 +12,7 @@ use Skfw\Interfaces\Cabbage\IHttpResponse;
 use Skfw\Interfaces\Cabbage\IMiddleware;
 use Skfw\Virtualize\VirtStdPathResolver;
 
-class DataAssetsResourcesMiddleware implements IMiddleware
+class DataAssetsResourcesMiddleware extends MiddlewareAbs implements IMiddleware
 {
     private VirtStdPathResolver $_directory_resource;
     private array $_pages;
@@ -20,6 +22,7 @@ class DataAssetsResourcesMiddleware implements IMiddleware
      */
     public function __construct(string $directory, array $pages = ['index.html', 'index.php'])
     {
+        parent::__construct();  // binding next handler!
         $this->_directory_resource = new VirtStdPathResolver($directory);
         $this->_pages = $pages;  // auto direct to initial pages!
     }
@@ -33,11 +36,11 @@ class DataAssetsResourcesMiddleware implements IMiddleware
         $resolver = new VirtStdPathResolver($path);
 
         // fake root directory
-        $path = VirtStdPathResolver::pack($resolver->paths(), base: true, sys: $resolver->system());
+        $path = VirtStdPathResolver::pack($resolver->values(), base: true, sys: $resolver->system());
         $resolver = new VirtStdPathResolver($path);  // safe path!
 
         // combine base directory with request uri path!
-        $resolver = $this->_directory_resource->join(...$resolver->paths());  // path combine!
+        $resolver = $this->_directory_resource->join(...$resolver->values());  // path combine!
         $path = $resolver->path();
 
         // try pages!

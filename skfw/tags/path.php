@@ -7,6 +7,6 @@ use Skfw\interfaces\ITag;
 use Stringable;
 
 #[Attribute]
-readonly class PathTag extends Tag implements ITag, Stringable
+readonly class PathTag extends Tag implements Stringable, ITag
 {
 }

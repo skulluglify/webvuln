@@ -34,12 +34,19 @@ require_once __DIR__ . '/interfaces/cabbage/http_status_message.php';
 require_once __DIR__ . '/interfaces/cabbage/http_request.php';
 require_once __DIR__ . '/interfaces/cabbage/http_response.php';
 require_once __DIR__ . '/interfaces/cabbage/middleware.php';
+require_once __DIR__ . '/interfaces/cabbage/controllers/direct.php';
+require_once __DIR__ . '/interfaces/cabbage/controllers/inspect.php';
+
+// tags
+require_once __DIR__ . '/tags/tag.php';
+require_once __DIR__ . '/tags/path.php';
 
 // utils
 require_once __DIR__ . '/utils.php';
 
 // abstracts
 require_once __DIR__ . '/abstracts/virtualize/std_content.php';
+require_once __DIR__ . '/abstracts/cabbage/middleware.php';
 
 // scripts
 require_once __DIR__ . '/tags/tag.php';
@@ -57,4 +64,6 @@ require_once __DIR__ . '/cabbage/http_body_content.php';
 require_once __DIR__ . '/cabbage/http_request.php';
 require_once __DIR__ . '/cabbage/http_response.php';
 require_once __DIR__ . '/cabbage/middlewares/data_assets_resources.php';
+require_once __DIR__ . '/cabbage/controllers/direct.php';
+require_once __DIR__ . '/cabbage/controllers/inspect.php';
 require_once __DIR__ . '/cabbage/controller.php';

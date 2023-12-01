@@ -55,14 +55,15 @@ class HttpResponse implements IHttpResponse
 
         // sending headers!
         $headers = $this->_headers;
+        $fn_safe_puts_csv = fn(string $v): string => preg_match('/(,|\s)/i', $v) ? '"' . $v . '"' : $v;
         foreach ($headers as $header)
         {
             if ($header instanceof IHttpHeader)
             {
                 $key = $header->name();
                 $values = $header->values();
-                $data = join(',', $values);
-                header($key . ': ' . $data);
+                $res = join(',', array_map($fn_safe_puts_csv, $values));
+                header($key . ': ' . $res);  // key: csv!
             }
         }
 
