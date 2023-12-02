@@ -36,6 +36,7 @@ require_once __DIR__ . '/interfaces/cabbage/http_response.php';
 require_once __DIR__ . '/interfaces/cabbage/middleware.php';
 require_once __DIR__ . '/interfaces/cabbage/controllers/direct.php';
 require_once __DIR__ . '/interfaces/cabbage/controllers/inspect.php';
+require_once __DIR__ . '/interfaces/cabbage/app.php';
 
 // tags
 require_once __DIR__ . '/tags/tag.php';

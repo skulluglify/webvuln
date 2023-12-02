@@ -36,6 +36,8 @@ class DataAssetsResourcesMiddleware extends MiddlewareAbs implements IMiddleware
     {
         // fake root by sandbox!
         $path = $request->path()->sandbox(PathSys::POSIX);
+        $path = $this->_directory_resource->join(...$path->values());
+        $path = $path->path();  // make it string, suitable for php version!
 
         // try pages!
         if (is_file($path)) return $this->_render($path);
@@ -51,7 +53,7 @@ class DataAssetsResourcesMiddleware extends MiddlewareAbs implements IMiddleware
 
         return $this->next($request);
     }
-    private function _render($path): ?HttpResponse
+    private function _render(string $path): ?HttpResponse
     {
         $content = file_get_contents($path);
         $file_info = new finfo(FILEINFO_MIME_TYPE);

@@ -165,7 +165,7 @@ class VirtStdPathResolver implements IVirtStdPathResolver
 
         // Combine, Windows Path!
         // Windows ignores double backslash! (Universal Naming Convention Path)
-        return $base ? strtoupper($drive) . ':\\' . join('\\', $values) : join('\\', $values);
+        return $base ? strtoupper($drive) . ':\\' . implode('\\', $values) : implode('\\', $values);
     }
 
     private static function _pack_windows_path_v2(array $data, bool $base = true): string
@@ -319,7 +319,7 @@ class VirtStdPathResolver implements IVirtStdPathResolver
         $values = array_map(fn(string $path): string => str_replace(' ', '\\ ', $path), $values);
 
         // combine
-        return $base ? '/' . join('/', $values) : join('/', $values);
+        return $base ? '/' . implode('/', $values) : implode('/', $values);
     }
     // TODO: windows path can write like posix, fix it!
     // ex. c:/Users/Guest/Downloads [Windows][Valid]
@@ -495,9 +495,9 @@ class VirtStdPathResolver implements IVirtStdPathResolver
     public function path(): string
     {
         // make it suitable for php in any cases!
-        if (!$this->is_base_dir()) return join(DIRECTORY_SEPARATOR, $this->_values);  // no base!
+        if (!$this->is_base_dir()) return implode(DIRECTORY_SEPARATOR, $this->_values);  // no base!
         $drive = $this->_drive !== null ? $this->_drive . ':' . DIRECTORY_SEPARATOR : '/';
-        return $drive . join(DIRECTORY_SEPARATOR, $this->_values);
+        return $drive . implode(DIRECTORY_SEPARATOR, $this->_values);
     }
 
     /**

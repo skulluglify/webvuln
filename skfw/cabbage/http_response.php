@@ -62,7 +62,7 @@ class HttpResponse implements IHttpResponse
             {
                 $key = $header->name();
                 $values = $header->values();
-                $res = join(',', array_map($fn_safe_puts_csv, $values));
+                $res = implode(',', array_map($fn_safe_puts_csv, $values));
                 header($key . ': ' . $res);  // key: csv!
             }
         }

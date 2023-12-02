@@ -94,7 +94,9 @@ class CabbageInspectApp implements ICabbageInspectApp
             if (preg_match('/\w+/i', $page))
             {
                 // ex. AdminController class!
-                $controller = capitalize_each_word($page) . 'Controller';
+                $class = capitalize_each_word($page);
+                $class = implode('', array_filter(str_split($class), fn(string $c): bool => preg_match('/\w/i', $c)));
+                $controller = $class . 'Controller';
                 $script = $workdir . DIRECTORY_SEPARATOR . $page . '.php';
 
                 if (is_file($script))  // check is file!

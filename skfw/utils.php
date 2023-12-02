@@ -51,7 +51,7 @@ function safe_file_name(string $name): string
         shuffle($data);
 
         // returning
-        return 'bk_' . join($data);  // start at 'bk_' for header
+        return 'bk_' . implode('', $data);  // start at 'bk_' for header
     }
 
     $temp = '';
@@ -190,7 +190,7 @@ function str(mixed $any): string
     else if (is_bool($any)) return $any ? 'true' : 'false';
     else if (is_numeric($any)) return '' . $any;  // convert to string!
     else if (is_string($any)) return $any;  // return itself!
-    else if (is_array($any)) return join(',', array_map(fn(mixed $v): string => str($v), $any));
+    else if (is_array($any)) return implode(',', array_map(fn(mixed $v): string => str($v), $any));
     else if (is_callable($any)) {
         try {
             $reflect = new ReflectionFunction($any);
