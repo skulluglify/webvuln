@@ -7,7 +7,7 @@ function __MODULES_LOADER(string $cwd, string $model): void
     {
         if (preg_match('/^\w.+?\.php$/i', $file))
         {
-            $src = $cwd . DIRECTORY_SEPARATOR . $file;
+            $src = $cwd . DIRECTORY_SEPARATOR . $model . DIRECTORY_SEPARATOR . $file;
             require_once $src;
         }
     }
