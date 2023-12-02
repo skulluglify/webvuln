@@ -1,12 +1,10 @@
 <?php
 namespace Skfw\Cabbage\Middlewares;
 
-use Closure;
 use Exception;
 use finfo;
 use Override;
-use PathSys;
-use Skfw\Abstracts\cabbage\MiddlewareAbs;
+use Skfw\Abstracts\MiddlewareAbs;
 use Skfw\Cabbage\HttpHeader;
 use Skfw\Cabbage\HttpResponse;
 use Skfw\Interfaces\Cabbage\IHttpRequest;

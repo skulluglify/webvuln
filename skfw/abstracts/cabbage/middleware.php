@@ -1,5 +1,5 @@
 <?php
-namespace Skfw\Abstracts\cabbage;
+namespace Skfw\Abstracts;
 
 use Closure;
 use ReflectionException;

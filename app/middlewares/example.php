@@ -2,8 +2,7 @@
 namespace App\Middlewares;
 
 use Override;
-use ReflectionException;
-use Skfw\Abstracts\cabbage\MiddlewareAbs;
+use Skfw\Abstracts\MiddlewareAbs;
 use Skfw\Cabbage\HttpResponse;
 use Skfw\Interfaces\Cabbage\IHttpRequest;
 use Skfw\Interfaces\Cabbage\IHttpResponse;

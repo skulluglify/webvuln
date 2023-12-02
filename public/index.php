@@ -4,8 +4,8 @@ include '../skfw/autoload.php';
 use Skfw\Cabbage\App;
 use Skfw\Cabbage\Middlewares\DataAssetsResourcesMiddleware;
 
-$cwd = __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'app';
-$assets = $cwd . DIRECTORY_SEPARATOR . 'data' . DIRECTORY_SEPARATOR . 'public';
+$cwd = __DIR__ . '/../app';
+$assets = $cwd . '/data/public';
 
 $app = new App($cwd);
 $app->controller(['admin']);
