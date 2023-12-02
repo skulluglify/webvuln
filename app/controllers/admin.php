@@ -9,6 +9,11 @@ use Skfw\Tags\PathTag;
 
 class AdminController {
 
+    public function prefix(): string
+    {
+        return '/admin';
+    }
+
     /**
      * @return IMiddleware[]
      */

@@ -99,16 +99,20 @@ class App {
         {
             foreach ($pages as $page)
             {
-                $middlewares = $this->_cabbage_inspect_app_controller->get_middlewares_from_class($page);
+                $resource = $this->_cabbage_inspect_app_controller->get_resource_from_class($page);
                 $routers = $this->_cabbage_inspect_app_controller->get_routers_from_class($page);
                 foreach ($routers as $route)
                 {
                     if ($route instanceof IDirectRouterController)
                     {
-                        if ($request->path()->equal($route->path(), sandbox: true))
+                        $path = $resource->prefix()->join($route->path());
+                        //echo $path . '<br>';
+                        //echo $request->path() . '<br>';
+                        //echo str($request->path()->equal($path, sandbox: true)) . '<br>';
+                        if ($request->path()->equal($path, sandbox: true))
                         {
                             $method = $route->method();
-                            $response = self::_middleware_handler($middlewares, $request, $method);
+                            $response = self::_middleware_handler($resource->middlewares(), $request, $method);
                             break;
                         }
                     }

@@ -468,6 +468,10 @@ class VirtStdPathResolver implements IVirtStdPathResolver
     {
         return $this->_size;
     }
+
+    /**
+     * @throws Exception
+     */
     public function join(string ...$values): self
     {
         $wrapper = self::class;
@@ -477,8 +481,12 @@ class VirtStdPathResolver implements IVirtStdPathResolver
             foreach ($resolve->values() as $p)
             {
                 $this->_values[] = $p;
+                $this->_size += 1;
             }
         }
+
+        // update origin path!
+        $this->_origin_path = $this->repack();
         return $this;
     }
     public function path(): string

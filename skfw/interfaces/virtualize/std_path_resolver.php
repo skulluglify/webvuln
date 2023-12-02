@@ -21,7 +21,7 @@ interface IVirtStdPathResolver extends Stringable
     public function schema(): ?string;
     public function domain(): ?string;
     public function size(): int;
-    public function join(string ...$paths): self;
+    public function join(string ...$values): self;
     public function path(): string;
     public function sandbox(?PathSys $sys = null): IVirtStdPathResolver;
     public function is_sandbox(): bool;

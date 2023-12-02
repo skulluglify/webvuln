@@ -3,6 +3,7 @@ namespace Skfw\Interfaces\Cabbage\Controllers;
 
 use Generator;
 use ReflectionClass;
+use Skfw\Interfaces\IVirtStdPathResolver;
 
 interface ICabbageInspectApp
 {
@@ -11,8 +12,14 @@ interface ICabbageInspectApp
     public function get_reflect_class(string $page): ?string;
 }
 
+interface ICabbageResourceController
+{
+    public function middlewares(): array;
+    public function prefix(): IVirtStdPathResolver;
+}
+
 interface ICabbageInspectAppController extends ICabbageInspectApp
 {
-    public function get_middlewares_from_class(string $page): array;
+    public function get_resource_from_class(string $page): ICabbageResourceController;
     public function get_routers_from_class(string $page): Generator;
 }

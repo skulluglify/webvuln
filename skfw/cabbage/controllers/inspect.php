@@ -3,6 +3,7 @@ namespace Skfw\Cabbage\Controllers;
 
 use Exception;
 use Generator;
+use PathSys;
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionException;
@@ -11,6 +12,7 @@ use Skfw\Cabbage\HttpRequest;
 use Skfw\Cabbage\HttpResponse;
 use Skfw\Interfaces\Cabbage\Controllers\ICabbageInspectApp;
 use Skfw\Interfaces\Cabbage\Controllers\ICabbageInspectAppController;
+use Skfw\Interfaces\Cabbage\Controllers\ICabbageResourceController;
 use Skfw\Interfaces\Cabbage\IMiddleware;
 use Skfw\Tags\PathTag;
 use Skfw\Virtualize\VirtStdPathResolver;
@@ -125,6 +127,38 @@ class CabbageInspectApp implements ICabbageInspectApp
     }
 }
 
+class CabbageResourceController implements ICabbageResourceController
+{
+    private array $_middlewares;
+    private VirtStdPathResolver $_prefix;
+
+    /**
+     * @throws Exception
+     */
+    public function __construct(VirtStdPathResolver|string $prefix, array $middlewares)
+    {
+        $prefix = $prefix instanceof VirtStdPathResolver ? $prefix : new VirtStdPathResolver($prefix);
+        $this->_prefix = $prefix->sandbox(PathSys::POSIX);
+        $this->_middlewares = [];
+        foreach ($middlewares as $middleware)
+        {
+            if ($middleware instanceof IMiddleware)
+                $this->_middlewares[] = $middleware;
+        }
+    }
+    /**
+     * @return IMiddleware[]
+     */
+    public function middlewares(): array
+    {
+        return $this->_middlewares;
+    }
+    public function prefix(): VirtStdPathResolver
+    {
+        return $this->_prefix;
+    }
+}
+
 class CabbageInspectAppController extends CabbageInspectApp implements ICabbageInspectAppController
 {
     /**
@@ -139,36 +173,41 @@ class CabbageInspectAppController extends CabbageInspectApp implements ICabbageI
 
     /**
      * @param string $page
-     * @return array
-     * @throws ReflectionException
+     * @return ICabbageResourceController
+     * @throws Exception
      */
-    public function get_middlewares_from_class(string $page): array
+    public function get_resource_from_class(string $page): ICabbageResourceController
     {
-        $class = $this->get_reflect_class($page);
+        try {
+            $class = $this->get_reflect_class($page);
 
-        $obj = new $class;
-        $reflect = new ReflectionClass($obj);
+            $obj = new $class;
+            $reflect = new ReflectionClass($obj);
 
-        $middlewares = [];
-        $methods = $reflect->getMethods(ReflectionMethod::IS_PUBLIC);
-        foreach ($methods as $method)
-        {
-            if (!$method->isAbstract() && !$method->isConstructor() && !$method->isDestructor()) {
-                $name = $method->getName();
-                if ($name === 'middlewares') {
-                    $result = $method->invoke($obj);
-                    if (!empty($result) && is_array($result)) {
-                        foreach ($result as $item) {
-                            if ($item instanceof IMiddleware)
-                                $middlewares[] = $item;
-                        }
+            $prefix = '';
+            $middlewares = [];
+            $methods = $reflect->getMethods(ReflectionMethod::IS_PUBLIC | ReflectionMethod::IS_PROTECTED);
+            foreach ($methods as $method)
+            {
+                if (!$method->isAbstract() && !$method->isConstructor() && !$method->isDestructor()) {
+                    $name = $method->getName();
+                    if ($name === 'middlewares') {
+                        $result = $method->invoke($obj);
+                        if (!empty($result) && is_array($result)) $middlewares = $result;
+                    } else
+                    if ($name === 'prefix') {
+                        $result = $method->invoke($obj);
+                        if (!empty($result) && is_string($result)) $prefix = $result;
                     }
                 }
             }
-        }
 
-        // result!
-        return $middlewares;
+            // result!
+            return new CabbageResourceController($prefix, $middlewares);
+        } catch (Exception) {}
+
+        // passing error!
+        return new CabbageResourceController('', []);
     }
     /**
      * @param string $page
@@ -197,10 +236,11 @@ class CabbageInspectAppController extends CabbageInspectApp implements ICabbageI
                         $args = $attribute->getArguments();
                         $tag = new PathTag(...$args);  // create new instance!
                         $path = new VirtStdPathResolver($tag->value());
+                        $path = $path->sandbox();  // sandbox
 
                         // yield path sandbox and reflection method!
                         $closure = fn(HttpRequest $req): ?HttpResponse => $method->invoke($obj, $req);
-                        yield new DirectRouterController($path->sandbox(), $closure);
+                        yield new DirectRouterController($path, $closure);
                     }
                 }
             }
