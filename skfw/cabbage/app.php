@@ -25,6 +25,8 @@ class App implements IApp {
         $this->_cabbage_inspect_app_controller = new CabbageInspectAppController($cwd, $workdir);
         $loader = $cwd . DIRECTORY_SEPARATOR . 'autoload.php';
         if (is_file($loader)) require_once $loader;
+        $this->_middlewares = [];
+        $this->_pages = [];
     }
     /**
      * @param IMiddleware[] $middlewares
@@ -48,7 +50,7 @@ class App implements IApp {
                 else $init = $handler;
 
                 // next iteration!
-                $bind = fn(Closure $next): ?HttpResponse => $middleware->bind($next);
+                $bind = fn(Closure $next) => $middleware->bind($next);
             }
         }
 
@@ -102,22 +104,32 @@ class App implements IApp {
             {
                 $resource = $this->_cabbage_inspect_app_controller->get_resource_from_class($page);
                 $routers = $this->_cabbage_inspect_app_controller->get_routers_from_class($page);
+
+                // before check equal path!
+                // $response = self::_middleware_handler($resource->middlewares(), $request);
+                // if (empty($response)) { ...
+
                 foreach ($routers as $route)
                 {
                     if ($route instanceof IDirectRouterController)
                     {
-                        $path = $resource->prefix()->join($route->path());
-                        //echo $path . '<br>';
+                        $prefix = $resource->prefix()->sandbox();  // can take cloning!
+                        $path = $prefix->join($route->path());  // join impact path by ref!
+                        //echo $resource->prefix() . '<br>';
                         //echo $request->path() . '<br>';
                         //echo str($request->path()->equal($path, sandbox: true)) . '<br>';
                         if ($request->path()->equal($path, sandbox: true))
                         {
                             $method = $route->method();
+
+                            // after check equal path!
                             $response = self::_middleware_handler($resource->middlewares(), $request, $method);
                             break;
                         }
                     }
                 }
+
+                // ... }
             }
         }
 

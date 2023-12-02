@@ -16,15 +16,18 @@ use Skfw\Virtualize\VirtStdPathResolver;
 class DataAssetsResourcesMiddleware extends MiddlewareAbs implements IMiddleware
 {
     private VirtStdPathResolver $_directory_resource;
+    private VirtStdPathResolver $_prefix;
     private array $_pages;
 
     /**
      * @throws Exception
      */
-    public function __construct(string $directory, array $pages = ['index.html', 'index.php'])
+    public function __construct(string $directory, string $prefix = '', array $pages = ['index.html', 'index.php'])
     {
         parent::__construct();  // binding next handler!
         $this->_directory_resource = new VirtStdPathResolver($directory);
+        $this->_prefix = new VirtStdPathResolver($prefix);  // set prefix to searching files!
+        $this->_prefix = $this->_prefix->sandbox(PathSys::POSIX);  // make it sandbox!
         $this->_pages = $pages;  // auto direct to initial pages!
     }
 
@@ -34,8 +37,20 @@ class DataAssetsResourcesMiddleware extends MiddlewareAbs implements IMiddleware
     #[Override]
     public function handler(IHttpRequest $request): ?IHttpResponse
     {
-        // fake root by sandbox!
+        $prefix = $this->_prefix;
         $path = $request->path()->sandbox(PathSys::POSIX);
+
+        $offset = $prefix->size();
+        $length = $path->size();
+
+        if ($offset > 0 && str_starts_with($path->path(), $prefix->path()))
+        {
+            $temp = [];
+            $values = $path->values();
+            for ($i = $offset; $i < $length; $i++) $temp[] = $values[$i];
+            $path = new VirtStdPathResolver($path->repack($temp));
+        }
+
         $path = $this->_directory_resource->join(...$path->values());
         $path = $path->path();  // make it string, suitable for php version!
 

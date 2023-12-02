@@ -227,6 +227,10 @@ class CabbageInspectAppController extends CabbageInspectApp implements ICabbageI
         $methods = $reflect->getMethods(ReflectionMethod::IS_PUBLIC);
         foreach ($methods as $method)
         {
+            // disable searching if function name is conflict with another!
+            if (str_contains('middlewares,prefix', $method->getName())) continue;
+
+            // searching function with attribute path tag!
             if (!$method->isAbstract() && !$method->isConstructor() && !$method->isDestructor())
             {
                 $attributes = $method->getAttributes(PathTag::class);
@@ -238,7 +242,7 @@ class CabbageInspectAppController extends CabbageInspectApp implements ICabbageI
                         $args = $attribute->getArguments();
                         $tag = new PathTag(...$args);  // create new instance!
                         $path = new VirtStdPathResolver($tag->value());
-                        $path = $path->sandbox();  // sandbox
+                        $path = $path->sandbox(PathSys::POSIX);  // sandbox
 
                         // yield path sandbox and reflection method!
                         $closure = fn(HttpRequest $req): ?HttpResponse => $method->invoke($obj, $req);
