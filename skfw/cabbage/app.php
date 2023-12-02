@@ -7,10 +7,11 @@ use ReflectionException;
 use Skfw\Cabbage\Controllers\CabbageInspectAppController;
 use Skfw\Enums\HttpStatusCode;
 use Skfw\Interfaces\Cabbage\Controllers\IDirectRouterController;
+use Skfw\Interfaces\Cabbage\IApp;
 use Skfw\Interfaces\Cabbage\IMiddleware;
 
 
-class App {
+class App implements IApp {
 
     private CabbageInspectAppController $_cabbage_inspect_app_controller;
     private array $_middlewares;
@@ -58,7 +59,7 @@ class App {
     /**
      * @throws Exception
      */
-    public function controller(array $pages): void
+    public function controllers(array $pages): void
     {
         foreach ($pages as $page)
         {

@@ -8,6 +8,6 @@ $cwd = __DIR__ . '/../app';
 $assets = $cwd . '/data/public';
 
 $app = new App($cwd);
-$app->controller(['admin']);
+$app->controllers(['admin']);
 $app->middlewares([new DataAssetsResourcesMiddleware($assets)]);
 $app->run();
