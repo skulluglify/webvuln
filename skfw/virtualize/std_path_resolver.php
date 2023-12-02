@@ -26,6 +26,9 @@ class VirtStdPathResolver implements IVirtStdPathResolver
      */
     public function __construct(string $path, bool $sandbox = false, bool $win_path_v2 = false)
     {
+        // auto direct current directory!
+        $path = $path !== '' ? $path : '.';
+
         //$this->_win_path_v2 = $win_path_v2;
         $this->_is_base_dir = $this->_is_base_dir($path);
         $this->_is_sandbox = $sandbox;
