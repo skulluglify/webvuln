@@ -12,12 +12,8 @@ class ExampleMiddleware extends MiddlewareAbs
     #[Override]
     public function handler(IHttpRequest $request): ?IHttpResponse
     {
-        $param = $request->param('message');
-        if (!empty($param))
-        {
-            $message = $param->shift();
-            if (!empty($message)) return new HttpResponse("You got message: $message");
-        }
-        return $this->next($request);
+        $message = $request->param('message')?->shift();  // get message by param!
+        if (!empty($message)) return new HttpResponse("You got message: $message");  // stop request, push response!
+        return $this->next($request);  // continue next request!
     }
 }
