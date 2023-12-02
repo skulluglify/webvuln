@@ -31,6 +31,7 @@ class AdminController {
     }
 
     #[PathTag(name: 'Give Read Permission On Icon File', value: '/icon.png')]
+    #[PathTag(name: 'Give Read Permission On Page HTML', value: '/page.html')]
     public function resources(IHttpRequest $request): ?IHttpResponse { return null; }
 
     #[PathTag(name: "Home Page Index", value: "/"), PathTag(name: "About Policy", value: "/about/policy")]

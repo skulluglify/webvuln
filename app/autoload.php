@@ -1,14 +1,16 @@
 <?php
-
-if (PHP_VERSION_ID < 80200) {
-
-    // warning!
-    header('HTTP/1.1 500 Internal Server Error');
-    $message = 'require php_version above php8.2';
-    echo $message;
-
-    // trigger error message!
-    trigger_error(message: $message, error_level: E_USER_ERROR);
+// autoload any script on directory! (modules)
+function __MODULES_LOADER(string $cwd, string $model): void
+{
+    $files = scandir($cwd . DIRECTORY_SEPARATOR . $model);
+    foreach ($files as $file)
+    {
+        if (preg_match('/^\w.+?\.php$/i', $file))
+        {
+            $src = $cwd . DIRECTORY_SEPARATOR . $file;
+            require_once $src;
+        }
+    }
 }
 
-require_once __DIR__ . '/middlewares/example.php';
+__MODULES_LOADER(__DIR__, 'middlewares');
