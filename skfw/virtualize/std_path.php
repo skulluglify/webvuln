@@ -27,21 +27,11 @@ class VirtStdPath implements Stringable, IVirtStdPath
 
         // resolving path on basedir!
         $resolver = new VirtStdPathResolver($basedir);
-        if (!$resolver->is_base_dir())
-        {
-            $pack = VirtStdPathResolver::pack($resolver->values(), base: true, sys: PathSys::POSIX);
-            $resolver = new VirtStdPathResolver(__DIR__ . $pack);
-        }
-        $this->_basedir = $resolver;
+        $this->_basedir = $resolver->absolute();
 
         // resolving path on workdir!
         $resolver = new VirtStdPathResolver($workdir);
-        if (!$resolver->is_base_dir())
-        {
-            $pack = VirtStdPathResolver::pack($resolver->values(), base: true, sys: PathSys::POSIX);
-            $resolver = new VirtStdPathResolver(__DIR__ . $pack);
-        }
-        $this->_workdir = $resolver;
+        $this->_workdir = $resolver->relative();
     }
     public function __toString(): string
     {

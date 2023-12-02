@@ -4,6 +4,7 @@ namespace Skfw\Cabbage\Middlewares;
 use Exception;
 use finfo;
 use Override;
+use PathSys;
 use Skfw\Abstracts\MiddlewareAbs;
 use Skfw\Cabbage\HttpHeader;
 use Skfw\Cabbage\HttpResponse;
@@ -33,16 +34,8 @@ class DataAssetsResourcesMiddleware extends MiddlewareAbs implements IMiddleware
     #[Override]
     public function handler(IHttpRequest $request): ?IHttpResponse
     {
-        $path = $request->path();
-        $resolver = new VirtStdPathResolver($path);
-
-        // fake root directory
-        $path = VirtStdPathResolver::pack($resolver->values(), base: true, sys: $resolver->system());
-        $resolver = new VirtStdPathResolver($path);  // safe path!
-
-        // combine base directory with request uri path!
-        $resolver = $this->_directory_resource->join(...$resolver->values());  // path combine!
-        $path = $resolver->path();
+        // fake root by sandbox!
+        $path = $request->path()->sandbox(PathSys::POSIX);
 
         // try pages!
         if (is_file($path)) return $this->_render($path);

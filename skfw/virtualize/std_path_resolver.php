@@ -535,6 +535,7 @@ class VirtStdPathResolver implements IVirtStdPathResolver
      */
     public function sandbox(?PathSys $sys = null): IVirtStdPathResolver
     {
+        $base = true;  // fake root!
         $wrapper = self::class;
 
         // default system using!
@@ -551,7 +552,7 @@ class VirtStdPathResolver implements IVirtStdPathResolver
             $schema = $schema !== 'file' ? $schema : 'https';  // change default value!
         }
 
-        $pack = self::pack($values, drive: $drive, schema: $schema, base: true, sys: $sys ?? $system);
+        $pack = self::pack($values, drive: $drive, schema: $schema, base: $base, sys: $sys ?? $system);
         return new $wrapper($pack, sandbox: true);
     }
     /**
