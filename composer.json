@@ -4,7 +4,8 @@
     "require": {
         "ramsey/uuid": "^4.7",
         "ext-fileinfo": "*",
-        "ext-libsodium": "*"
+        "ext-libsodium": "*",
+      "ext-http": "*"
     },
     "license": "MIT",
     "autoload": {

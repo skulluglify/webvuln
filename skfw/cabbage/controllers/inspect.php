@@ -5,15 +5,18 @@ use Exception;
 use Generator;
 use ReflectionAttribute;
 use ReflectionClass;
+use ReflectionException;
 use ReflectionMethod;
+use Skfw\Cabbage\HttpRequest;
+use Skfw\Cabbage\HttpResponse;
 use Skfw\Interfaces\Cabbage\Controllers\ICabbageInspectApp;
 use Skfw\Interfaces\Cabbage\Controllers\ICabbageInspectAppController;
+use Skfw\Interfaces\Cabbage\IMiddleware;
 use Skfw\Tags\PathTag;
 use Skfw\Virtualize\VirtStdPathResolver;
 
 class CabbageInspectApp implements ICabbageInspectApp
 {
-    private string $_cwd;
     private string $_workdir;  // directory like controllers, models, or views!
     private int $_chunk = 64;  // set minimum data collate!
 
@@ -24,72 +27,78 @@ class CabbageInspectApp implements ICabbageInspectApp
      */
     public function __construct(?string $cwd = null, string $workdir = 'controllers')
     {
-        // set default current work directory!
-        if ($cwd !== null) $this->_cwd = $cwd;
-        else
+        if ($cwd === null)
         {
-            $base_dir = getcwd();
-            if (empty($base_dir)) throw new Exception('base directory not give readable permission');
-            $this->_cwd = $base_dir;
+            $base = getcwd();
+            if (empty($base)) throw new Exception("directory $base is not give readable permission");
+            $cwd = $base;
         }
-        if (!is_safe_name($workdir)) throw new Exception('name of work directory is not safe');
-        if (!is_dir($cwd . DIRECTORY_SEPARATOR . $workdir)) throw new Exception('var workdir is not a directory');
-        $this->_workdir = $workdir;
+        if (!is_dir($cwd)) throw new Exception("directory $cwd is not found");
+        if (!is_safe_name($workdir)) throw new Exception("name of $workdir is not safe");
+        if (!is_dir($cwd . DIRECTORY_SEPARATOR . $workdir)) throw new Exception("directory $workdir is not found");
+        $this->_workdir = $cwd . DIRECTORY_SEPARATOR . $workdir;
     }
-
+    public function workdir(): string
+    {
+        return $this->_workdir;
+    }
     /**
      * @param string $script
      * @return string|null
      */
     public static function get_namespace_from_script(string $script): ?string
     {
+        // split code per line!
         $data = preg_split('/\\R/i', $script);
         foreach ($data as $line)
         {
+            $matches = [];
             $temp = trim($line);
-            //$temp = substr($temp, strlen($line));  // free up!
-            if (preg_match('/^(<php\?(\s+)|)namespace(\s+).+?;/i', $temp))
+
+            // find namespace from code!
+            if (preg_match('/namespace(\s+).+?;/i', $temp, $matches))
             {
 
-                $array = preg_split('/\s+/i', $temp);
-                $array_length = count($array);
+                // found namespace!
+                $found = $matches[0];
+                $array = preg_split('/\s+/i', $found);
 
-                if ($array_length > 0)
+                // get name from combination 'namespace' code!
+                if (count($array) > 0)
                 {
-                    $end = $array[$array_length - 1];
-                    if (str_ends_with($end, ';'))
-                    {
-                        // remove semicolon!
-                        return substr($end, 0, strlen($end) - 1);
-                    }
+                    $name = array_pop($array);
+                    return substr($name, 0, strlen($name) - 1);
                 }
             }
         }
 
+        // not found!
         return null;
     }
 
     /**
      * @param string $page
-     * @return ReflectionClass|null
+     * @return string|null
      */
-    public function get_reflect_class(string $page): ?ReflectionClass
+    public function get_reflect_class(string $page): ?string
     {
-        $cwd = $this->_cwd;
         $chunk = $this->_chunk;
+        $workdir = $this->_workdir;
         try {
+
+            if (!safe_file_name($page)) throw new Exception("name of $page is not valid");
+            if (!is_file($workdir . DIRECTORY_SEPARATOR . $page . '.php')) throw new Exception("file $page is not found");
+
             if (preg_match('/\w+/i', $page))
             {
                 // ex. AdminController class!
                 $controller = capitalize_each_word($page) . 'Controller';
+                $script = $workdir . DIRECTORY_SEPARATOR . $page . '.php';
 
-                $script_name = $page . '.php';
-                $script_src = $cwd . DIRECTORY_SEPARATOR . $this->_workdir . DIRECTORY_SEPARATOR . $script_name;
-
-                if (file_exists($script_src))
+                if (is_file($script))  // check is file!
                 {
                     $temp = '';  // cache temporary script!
-                    $stream = fopen($script_src, 'r');
+                    $stream = fopen($script, 'r');
                     $namespace = null;
 
                     while (!feof($stream))
@@ -106,8 +115,8 @@ class CabbageInspectApp implements ICabbageInspectApp
 
                     $controller = !empty($namespace) ? '\\'.$namespace.'\\'.$controller : $controller;
 
-                    require_once $script_src;  // add module script!
-                    return new ReflectionClass($controller);
+                    require_once $script;  // add module script!
+                    return $controller;
                 }
             }
         } catch (Exception) {}
@@ -130,33 +139,68 @@ class CabbageInspectAppController extends CabbageInspectApp implements ICabbageI
 
     /**
      * @param string $page
+     * @return array
+     * @throws ReflectionException
+     */
+    public function get_middlewares_from_class(string $page): array
+    {
+        $class = $this->get_reflect_class($page);
+
+        $obj = new $class;
+        $reflect = new ReflectionClass($obj);
+
+        $middlewares = [];
+        $methods = $reflect->getMethods(ReflectionMethod::IS_PUBLIC);
+        foreach ($methods as $method)
+        {
+            if (!$method->isAbstract() && !$method->isConstructor() && !$method->isDestructor()) {
+                $name = $method->getName();
+                if ($name === 'middlewares') {
+                    $result = $method->invoke($obj);
+                    if (!empty($result) && is_array($result)) {
+                        foreach ($result as $item) {
+                            if ($item instanceof IMiddleware)
+                                $middlewares[] = $item;
+                        }
+                    }
+                }
+            }
+        }
+
+        // result!
+        return $middlewares;
+    }
+    /**
+     * @param string $page
      * @return Generator
      * @throws Exception
      * @yield DirectRouterController
      */
-    public function get_direct_routers(string $page): Generator
+    public function get_routers_from_class(string $page): Generator
     {
-        $reflect = $this->get_reflect_class($page);
+        $class = $this->get_reflect_class($page);
+
+        $obj = new $class;
+        $reflect = new ReflectionClass($obj);
+
         $methods = $reflect->getMethods(ReflectionMethod::IS_PUBLIC);
         foreach ($methods as $method)
         {
-            if ($method instanceof ReflectionMethod)
+            if (!$method->isAbstract() && !$method->isConstructor() && !$method->isDestructor())
             {
-                $opts = $method->isPublic() && !$method->isConstructor() && !$method->isDestructor();
-                if ($opts)
+                $attributes = $method->getAttributes(PathTag::class);
+                foreach ($attributes as $attribute)
                 {
-                    $attributes = $method->getAttributes(PathTag::class);
-                    foreach ($attributes as $attribute)
+                    // same as PathTag object class!
+                    if ($attribute->getName() === PathTag::class)
                     {
-                        if ($attribute instanceof ReflectionAttribute)
-                        {
-                            $args = $attribute->getArguments();
-                            $tag = new PathTag(...$args);  // create new instance!
-                            $path = new VirtStdPathResolver($tag->value());
+                        $args = $attribute->getArguments();
+                        $tag = new PathTag(...$args);  // create new instance!
+                        $path = new VirtStdPathResolver($tag->value());
 
-                            // yield path sandbox and reflection method!
-                            yield new DirectRouterController($path->sandbox(), $method);
-                        }
+                        // yield path sandbox and reflection method!
+                        $closure = fn(HttpRequest $req): ?HttpResponse => $method->invoke($obj, $req);
+                        yield new DirectRouterController($path->sandbox(), $closure);
                     }
                 }
             }

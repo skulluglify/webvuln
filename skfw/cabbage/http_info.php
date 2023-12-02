@@ -78,8 +78,9 @@ class HttpInfoRequest implements IHttpInfoRequest
 
         // path from remote based!
         // sandbox path from document uri!
-        $this->_path = new VirtStdPathResolver($this->_document_uri);
-        $this->_path = $this->_path->sandbox();
+        // schema 'file://' for passing params on URI!
+        $this->_path = new VirtStdPathResolver('file://' . $this->_document_uri);
+        $this->_path = $this->_path->sandbox(PathSys::POSIX);
 
     }
 

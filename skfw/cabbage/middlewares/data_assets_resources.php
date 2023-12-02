@@ -4,6 +4,7 @@ namespace Skfw\Cabbage\Middlewares;
 use Closure;
 use Exception;
 use finfo;
+use Override;
 use PathSys;
 use Skfw\Abstracts\cabbage\MiddlewareAbs;
 use Skfw\Cabbage\HttpHeader;
@@ -31,6 +32,7 @@ class DataAssetsResourcesMiddleware extends MiddlewareAbs implements IMiddleware
     /**
      * @throws Exception
      */
+    #[Override]
     public function handler(IHttpRequest $request): ?IHttpResponse
     {
         $path = $request->path();
@@ -56,7 +58,7 @@ class DataAssetsResourcesMiddleware extends MiddlewareAbs implements IMiddleware
             }
         }
 
-        return null;
+        return $this->next($request);
     }
     private function _render($path): ?HttpResponse
     {
