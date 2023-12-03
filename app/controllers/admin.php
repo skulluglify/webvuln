@@ -12,6 +12,14 @@ use Skfw\Interfaces\Cabbage\IMiddleware;
 use Skfw\Tags\PathTag;
 
 class AdminController {
+    public string $cwd;
+    public string $assets;
+
+    public function __construct() {
+        $this->cwd = __DIR__ . DIRECTORY_SEPARATOR . implode(DIRECTORY_SEPARATOR, ['..', 'app']);
+        $this->assets = $this->cwd . DIRECTORY_SEPARATOR . implode(DIRECTORY_SEPARATOR, ['data', 'public']);
+    }
+
 
     public function prefix(): string
     {
@@ -26,7 +34,7 @@ class AdminController {
     {
         return [
             new ExampleMiddleware(),
-            new DataAssetsResourcesMiddleware(__DIR__ . '/../data/public', prefix: 'admin'),
+            new DataAssetsResourcesMiddleware($this->$assets, prefix: 'admin'),
         ];
     }
 
