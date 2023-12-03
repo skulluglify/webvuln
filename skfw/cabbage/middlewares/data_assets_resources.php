@@ -49,7 +49,9 @@ class DataAssetsResourcesMiddleware extends MiddlewareAbs implements IMiddleware
             $values = $path->values();
             for ($i = $offset; $i < $length; $i++) $temp[] = $values[$i];
             $path = new VirtStdPathResolver($path->repack($temp));
-        }
+
+            // passing if not found!
+        } else return $this->next($request);
 
         $path = $this->_directory_resource->join(...$path->values());
         $path = $path->path();  // make it string, suitable for php version!

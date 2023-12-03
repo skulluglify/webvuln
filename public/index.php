@@ -9,5 +9,5 @@ $assets = $workdir . DIRECTORY_SEPARATOR . implode(DIRECTORY_SEPARATOR, ['data',
 
 $app = new App($workdir);
 $app->controllers(['admin', 'user']);
-$app->middlewares([new DataAssetsResourcesMiddleware($assets, prefix: 'extras')]);
+$app->middlewares([new DataAssetsResourcesMiddleware($assets, prefix: 'app')]);
 $app->run();
