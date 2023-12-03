@@ -34,7 +34,7 @@ class AdminController {
     {
         return [
             new ExampleMiddleware(),
-            new DataAssetsResourcesMiddleware($this->$assets, prefix: 'admin'),
+            new DataAssetsResourcesMiddleware($this->assets, prefix: 'admin'),
         ];
     }
 
