@@ -68,7 +68,12 @@ class HttpResponse implements IHttpResponse
         }
 
         // sending data!
-        echo $this->_data;  // sending data into web page!
+        //echo $this->_data;  // sending data into web page!
+        $stream = fopen('php://output', 'wb');
+        //fseek($stream, 0);
+        fwrite($stream, $this->_data);
+        fclose($stream);
+
         $this->_sending = true;  // sending signal!
         $this->_data = '';  // free up!
     }

@@ -14,6 +14,8 @@ class UserController
     public function home(IHttpRequest $request): ?IHttpResponse
     {
 
+        // coding ...
+
         return new HttpResponse('Hello, World!');
     }
 }
