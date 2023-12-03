@@ -67,4 +67,5 @@ require_once __DIR__ . '/cabbage/http_response.php';
 require_once __DIR__ . '/cabbage/middlewares/data_assets_resources.php';
 require_once __DIR__ . '/cabbage/controllers/direct.php';
 require_once __DIR__ . '/cabbage/controllers/inspect.php';
+require_once __DIR__ . '/cabbage/utils.php';
 require_once __DIR__ . '/cabbage/app.php';

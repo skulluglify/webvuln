@@ -73,8 +73,8 @@ class DataAssetsResourcesMiddleware extends MiddlewareAbs implements IMiddleware
         $content = file_get_contents($path);
         $file_info = new finfo(FILEINFO_MIME_TYPE);
         $content_type = $file_info->buffer($content);
-        return !empty($content) ? new HttpResponse($content, headers: [
-            new HttpHeader('content-type', values: [$content_type]),
-        ]) : null;
+        return !empty($content) ? new HttpResponse($content, headers: headers([
+            'content-type' => $content_type,
+        ])) : null;
     }
 }
