@@ -4,6 +4,7 @@ namespace App\Controllers;
 use App\Middlewares\ExampleMiddleware;
 use Exception;
 use Skfw\Cabbage\HttpResponse;
+use Skfw\Enums\HttpStatusCode;
 use Skfw\Interfaces\Cabbage\IHttpRequest;
 use Skfw\Interfaces\Cabbage\IHttpResponse;
 use Skfw\Interfaces\Cabbage\IMiddleware;
@@ -34,10 +35,13 @@ class AdminController {
         ];
     }
 
-    #[Route('/about/policy'), PathTag(name: 'Home Page Index', value: '/')]
+    #[Route('/')]
     public function home(IHttpRequest $request): ?IHttpResponse
     {
+        // $body = $request->body();
+        $name = $request->param('name')?->shift();
 
-        return new HttpResponse('Hello, Syafiq!');
+        if (!empty($name)) return new HttpResponse("Hello, $name!");
+        return new HttpResponse("Hello, World!");
     }
 }
