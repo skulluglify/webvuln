@@ -34,7 +34,7 @@ interface IVirtStdPathResolver extends Stringable
     public function network(?bool $base = null): string;
     public function windows(?bool $base = null): string;
     public function repack(?array $values = null, ?string $drive = null, ?string $schema = null, ?bool $base = null, ?PathSys $sys = null): string;
+    public function clone(): IVirtStdPathResolver;
     public function dirname(): string;
     public function basename(): string;
-
 }

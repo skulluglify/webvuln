@@ -15,6 +15,7 @@ use Skfw\Interfaces\Cabbage\Controllers\ICabbageInspectAppController;
 use Skfw\Interfaces\Cabbage\Controllers\ICabbageResourceController;
 use Skfw\Interfaces\Cabbage\IMiddleware;
 use Skfw\Tags\PathTag;
+use Skfw\Tags\Route;
 use Skfw\Virtualize\VirtStdPathResolver;
 
 class CabbageInspectApp implements ICabbageInspectApp
@@ -228,7 +229,7 @@ class CabbageInspectAppController extends CabbageInspectApp implements ICabbageI
         foreach ($methods as $method)
         {
             // disable searching if function name is conflict with another!
-            if (str_contains('middlewares,prefix', $method->getName())) continue;
+            if (in_array($method->getName(), ['middlewares', 'prefix'])) continue;
 
             // searching function with attribute path tag!
             if (!$method->isAbstract() && !$method->isConstructor() && !$method->isDestructor())
@@ -244,6 +245,33 @@ class CabbageInspectAppController extends CabbageInspectApp implements ICabbageI
                         $path = new VirtStdPathResolver($tag->value());
                         $path = $path->sandbox(PathSys::POSIX);  // sandbox
 
+                        // yield path sandbox and reflection method!
+                        $closure = fn(HttpRequest $req): ?HttpResponse => $method->invoke($obj, $req);
+                        yield new DirectRouterController($path, $closure);
+                    }
+
+                    $path = null;
+                    switch ($attribute->getName())
+                    {
+                        case Route::class:
+                            $args = $attribute->getArguments();
+                            $tag = new Route(...$args);  // create new instance!
+                            $path = new VirtStdPathResolver($tag->value());
+                            $path = $path->sandbox(PathSys::POSIX);  // sandbox
+                            break;
+
+                        case PathTag::class:
+                            $args = $attribute->getArguments();
+                            $tag = new PathTag(...$args);  // create new instance!
+                            $path = new VirtStdPathResolver($tag->value());
+                            $path = $path->sandbox(PathSys::POSIX);  // sandbox
+                            break;
+
+                    }
+
+                    // yield!
+                    if (!empty($path))
+                    {
                         // yield path sandbox and reflection method!
                         $closure = fn(HttpRequest $req): ?HttpResponse => $method->invoke($obj, $req);
                         yield new DirectRouterController($path, $closure);

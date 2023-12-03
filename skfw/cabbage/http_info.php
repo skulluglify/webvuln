@@ -39,7 +39,7 @@ class HttpInfoRequest implements IHttpInfoRequest
         $server = $server ?? $_SERVER;
 
         // make it harder than your pennies!
-        $redirect_status = $server['REDIRECT_STATUS'];  // value: 200
+        $redirect_status = array_key_exists('REDIRECT_STATUS', $server) ? $server['REDIRECT_STATUS'] : 200;  // value: 200
         $status_code = intval($redirect_status);  // try parsing!
         $status = HttpStatusCode::tryFrom($status_code) ?? HttpStatusCode::IM_A_TEAPOT;
         $this->_redirect_status = $status;
@@ -71,7 +71,8 @@ class HttpInfoRequest implements IHttpInfoRequest
         $method = strtoupper($request_method);  // set upper case of request method!
         $this->_request_method = HttpMethod::tryFrom($method) ?? HttpMethod::GET;
 
-        $this->_fast_cgi_role = $server['FCGI_ROLE'];  // value: RESPONDER
+        // value: RESPONDER
+        $this->_fast_cgi_role = array_key_exists('FCGI_ROLE', $server) ? $server['FCGI_ROLE'] : 'UNKNOWN';
 
         $request_time = $server['REQUEST_TIME'];  //1700694440
         $this->_request_time = intval($request_time);  // try parsing!

@@ -113,7 +113,7 @@ class App implements IApp {
                 {
                     if ($route instanceof IDirectRouterController)
                     {
-                        $prefix = $resource->prefix()->sandbox();  // can take cloning!
+                        $prefix = $resource->prefix()->clone();  // can take cloning!
                         $path = $prefix->join($route->path());  // join impact path by ref!
                         //echo $resource->prefix() . '<br>';
                         //echo $request->path() . '<br>';
@@ -128,6 +128,8 @@ class App implements IApp {
                         }
                     }
                 }
+
+                //exit(1);
 
                 // ... }
             }

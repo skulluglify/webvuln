@@ -555,6 +555,18 @@ class VirtStdPathResolver implements IVirtStdPathResolver
         $pack = self::pack($values, drive: $drive, schema: $schema, base: $base, sys: $sys ?? $system);
         return new $wrapper($pack, sandbox: true);
     }
+
+    /**
+     * @return IVirtStdPathResolver
+     * @throws Exception
+     */
+    public function clone(): IVirtStdPathResolver
+    {
+        $wrapper = self::class;
+        $system = $this->system();
+        $system = $system !== PathSys::UNKNOWN ? $system : PathSys::POSIX;
+        return new $wrapper($this->repack(sys: $system));
+    }
     /**
      * @return bool
      */
