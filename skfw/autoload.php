@@ -41,6 +41,7 @@ require_once __DIR__ . '/interfaces/cabbage/app.php';
 // tags
 require_once __DIR__ . '/tags/tag.php';
 require_once __DIR__ . '/tags/path.php';
+require_once __DIR__ . '/tags/route.php';
 
 // utils
 require_once __DIR__ . '/utils.php';

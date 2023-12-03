@@ -3,13 +3,12 @@ namespace App\Controllers;
 
 use App\Middlewares\ExampleMiddleware;
 use Exception;
-use Skfw\Cabbage\HttpRequest;
 use Skfw\Cabbage\HttpResponse;
-use Skfw\Cabbage\Middlewares\DataAssetsResourcesMiddleware;
 use Skfw\Interfaces\Cabbage\IHttpRequest;
 use Skfw\Interfaces\Cabbage\IHttpResponse;
 use Skfw\Interfaces\Cabbage\IMiddleware;
 use Skfw\Tags\PathTag;
+use Skfw\Tags\Route;
 
 class AdminController {
     public string $assets;
@@ -32,15 +31,10 @@ class AdminController {
     {
         return [
             new ExampleMiddleware(),
-            new DataAssetsResourcesMiddleware($this->assets, prefix: 'admin'),
         ];
     }
 
-    #[PathTag(name: 'Give Read Permission On Icon File', value: '/icon.png')]
-    #[PathTag(name: 'Give Read Permission On Page HTML', value: '/page.html')]
-    public function resources(IHttpRequest $request): ?IHttpResponse { return null; }
-
-    #[PathTag(name: "Home Page Index", value: "/"), PathTag(name: "About Policy", value: "/about/policy")]
+    #[Route('/about/policy'), PathTag(name: 'Home Page Index', value: '/')]
     public function home(IHttpRequest $request): ?IHttpResponse
     {
 

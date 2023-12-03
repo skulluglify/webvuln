@@ -8,6 +8,6 @@ $workdir = __DIR__ . DIRECTORY_SEPARATOR . implode(DIRECTORY_SEPARATOR, ['..', '
 $assets = $workdir . DIRECTORY_SEPARATOR . implode(DIRECTORY_SEPARATOR, ['data', 'public']);
 
 $app = new App($workdir);
-$app->controllers(['admin']);
+$app->controllers(['admin', 'user']);
 $app->middlewares([new DataAssetsResourcesMiddleware($assets)]);
 $app->run();

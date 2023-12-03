@@ -234,22 +234,9 @@ class CabbageInspectAppController extends CabbageInspectApp implements ICabbageI
             // searching function with attribute path tag!
             if (!$method->isAbstract() && !$method->isConstructor() && !$method->isDestructor())
             {
-                $attributes = $method->getAttributes(PathTag::class);
+                $attributes = $method->getAttributes();
                 foreach ($attributes as $attribute)
                 {
-                    // same as PathTag object class!
-                    if ($attribute->getName() === PathTag::class)
-                    {
-                        $args = $attribute->getArguments();
-                        $tag = new PathTag(...$args);  // create new instance!
-                        $path = new VirtStdPathResolver($tag->value());
-                        $path = $path->sandbox(PathSys::POSIX);  // sandbox
-
-                        // yield path sandbox and reflection method!
-                        $closure = fn(HttpRequest $req): ?HttpResponse => $method->invoke($obj, $req);
-                        yield new DirectRouterController($path, $closure);
-                    }
-
                     $path = null;
                     switch ($attribute->getName())
                     {
