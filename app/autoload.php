@@ -14,3 +14,5 @@ function __MODULES_LOADER(string $cwd, string $model): void
 }
 
 __MODULES_LOADER(__DIR__, 'middlewares');
+__MODULES_LOADER(__DIR__, 'models');
+__MODULES_LOADER(__DIR__, 'extras');
