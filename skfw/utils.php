@@ -130,54 +130,57 @@ function str_comp_case(string $left, string $right, int $case = 1): bool
 function query_decode(string $query): array
 {
     // maybe query is URI component
-    $data = explode('?', $query, limit: 2);
-    $query = array_pop($data) ?? '';
-
     $temp = [];
-    $queries = str_getcsv($query, '&');
-    foreach ($queries as $query)
+    $data = explode('?', $query, limit: 2);
+    if (count($data) > 0)
     {
-        $data = str_getcsv($query, '=');
-        $length = count($data);
-
-        if ($length > 0)
+        $query = array_pop($data) ?? '';
+        $queries = str_getcsv($query, '&');
+        foreach ($queries as $query)
         {
-            $key = $data[0];
-            $value = null;
+            $data = str_getcsv($query, '=');
+            $length = count($data);
 
-            if ($length > 1)
+            if ($length > 0)
             {
-                // acquire new value
-                $value = $data[1];
+                $key = $data[0];
+                $value = null;
 
-                // decode query by url decode function
-                $decoded = urldecode($value);
-
-                // store data, acquire new data query, array append
-                if (array_key_exists($key, $temp))
+                if ($length > 1)
                 {
-                    $temp[$key][] = $decoded;
+                    // acquire new value
+                    $value = $data[1];
+
+                    // decode query by url decode function
+                    $decoded = urldecode($value);
+
+                    // store data, acquire new data query, array append
+                    if (array_key_exists($key, $temp))
+                    {
+                        $temp[$key][] = $decoded;
+                        continue;
+                    }
+
+                    // store data, acquire new data query, create new array
+                    $temp[$key] = [$decoded];
                     continue;
                 }
 
+                // make it empty!
+
+                // maybe value is not set.
+                // store data, acquire new data query, array append
+                //if (array_key_exists($key, $temp))
+                //{
+                //    $temp[$key][] = null;  // nullable
+                //    continue;
+                //}
+
                 // store data, acquire new data query, create new array
-                $temp[$key] = [$decoded];
-                continue;
+                //$temp[$key] = [null];  // nullable
             }
-
-            // maybe value is not set.
-            // store data, acquire new data query, array append
-            if (array_key_exists($key, $temp))
-            {
-                $temp[$key][] = null;  // nullable
-                continue;
-            }
-
-            // store data, acquire new data query, create new array
-            $temp[$key] = [null];  // nullable
         }
     }
-
 
     return $temp;
 }
