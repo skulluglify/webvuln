@@ -46,7 +46,7 @@ function create_table_todos()
 
 // initial tables on database!
 create_table_users();
-create_table_todos()
+create_table_todos();
 
 // login
 function login($email, $password)
