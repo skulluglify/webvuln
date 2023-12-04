@@ -1,7 +1,6 @@
 <?php
-
 // create connection
-$pdo = new PDO(dsn: 'mysql:host=localhost;dbname=todolist_db', username: 'root', password: '');
+$pdo = new PDO(dsn: 'mysql:host=localhost;dbname=todos', username: 'root', password: '');
 
 // // create table
 // users
@@ -23,6 +22,7 @@ function create_table_users()
         return false;
     }
 }
+
 // todos
 function create_table_todos()
 {
@@ -43,6 +43,10 @@ function create_table_todos()
         return false;
     }
 }
+
+// initial tables on database!
+create_table_users();
+create_table_todos()
 
 // login
 function login($email, $password)
