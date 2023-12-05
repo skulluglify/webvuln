@@ -68,7 +68,7 @@ class UserController
     }
 
     #[Route('/init')]
-    public function login(IHttpRequest $request): ?IHttpResponse
+    public function init_db(IHttpRequest $request): ?IHttpResponse
     {
         $this->simple->init();
         $this->simple->add_user('admin', 'admin@mail.co', '1234');
