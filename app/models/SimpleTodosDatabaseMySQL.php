@@ -47,7 +47,7 @@ class SimpleTodosDatabaseMySQL implements ISimpleTodosDatabaseMySQL
             $stmt = $pdo->prepare($sql);
             return $stmt->execute();
 
-        } catch (PDOException) {}
+        } catch (PDOException $e) { throw $e; }
         return false;
     }
     public function create_table_todos(): bool
@@ -64,7 +64,7 @@ class SimpleTodosDatabaseMySQL implements ISimpleTodosDatabaseMySQL
             $stmt = $pdo->prepare($sql);
             return $stmt->execute();
 
-        } catch (PDOException) {}
+        } catch (PDOException $e) { throw $e; }
         return false;
     }
     public function add_user(string $name,string $email,string $password): bool
@@ -82,7 +82,7 @@ class SimpleTodosDatabaseMySQL implements ISimpleTodosDatabaseMySQL
             //$stmt->bindParam(':password',$password);
             return $stmt->execute();
 
-        } catch (PDOException) {}
+        } catch (PDOException $e) { throw $e; }
         return false;
     }
     public function get_user(string $name = '', string $email = ''): ?array
@@ -104,7 +104,7 @@ class SimpleTodosDatabaseMySQL implements ISimpleTodosDatabaseMySQL
                 if (!empty($data) && is_array($data)) return $data;
             }
 
-        } catch (PDOException) {}
+        } catch (PDOException $e) { throw $e; }
         return null;
     }
     public function add_todo(string $description,int $deadline): bool
@@ -121,7 +121,7 @@ class SimpleTodosDatabaseMySQL implements ISimpleTodosDatabaseMySQL
             $stmt = $pdo->prepare($sql);
             return $stmt->execute();
 
-        } catch (PDOException) {}
+        } catch (PDOException $e) { throw $e; }
         return false;
     }
     public function get_todos(): ?array
@@ -138,7 +138,7 @@ class SimpleTodosDatabaseMySQL implements ISimpleTodosDatabaseMySQL
                 if (!empty($data)) return $data;
             }
 
-        } catch (PDOException) {}
+        } catch (PDOException $e) { throw $e; }
         return null;
     }
     public function edit_todo(int $id, string $description, int $deadline, bool $finished = false): bool
@@ -163,7 +163,7 @@ class SimpleTodosDatabaseMySQL implements ISimpleTodosDatabaseMySQL
             $stmt = $pdo->prepare($sql);
             return $stmt->execute();
 
-        } catch (PDOException) {}
+        } catch (PDOException $e) { throw $e; }
         return false;
     }
     public function del_todo(int $id): bool
@@ -177,7 +177,7 @@ class SimpleTodosDatabaseMySQL implements ISimpleTodosDatabaseMySQL
             $stmt = $pdo->prepare($sql);
             return $stmt->execute();
 
-        } catch (PDOException) {}
+        } catch (PDOException $e) { throw $e; }
         return false;
     }
 }

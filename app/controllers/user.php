@@ -58,7 +58,7 @@ class UserController
     {
         if ($request->method() === HttpMethod::GET)
         {
-            $data = $this->simple->get_todos();
+            $data = $this->simple->get_todos() ?? [];
             $data = array_map(fn(array $v): array => $this->_todos_collate($v), $data);
             $temp = json_encode($data);
             return new HttpResponse($temp, headers: headers([
@@ -68,7 +68,7 @@ class UserController
     }
 
     #[Route('/init')]
-    public function init_db(IHttpRequest $request): ?IHttpResponse
+    public function init(IHttpRequest $request): ?IHttpResponse
     {
         $this->simple->init();
         $this->simple->add_user('admin', 'admin@mail.co', '1234');
