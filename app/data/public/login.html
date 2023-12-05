@@ -15,35 +15,33 @@
     <div
       class="container d-flex justify-content-center align-items-center vh-100"
     >
-      <!-- login form -->
+      <!-- Login form -->
       <div class="card col-4">
         <div class="card-header">
           <h3>Login</h3>
         </div>
         <div class="card-body">
-          <form action="login.php" method="post">
-            <div class="mb-3">
-              <label for="email" class="form-label">Email</label>
-              <input
-                type="email"
-                class="form-control"
-                id="email"
-                name="email"
-                placeholder="Enter Email"
-              />
-            </div>
-            <div class="mb-3">
-              <label for="password" class="form-label">Password</label>
-              <input
-                type="password"
-                class="form-control"
-                id="password"
-                name="password"
-                placeholder="Enter password"
-              />
-            </div>
-            <button type="submit" class="btn btn-primary">Login</button>
-          </form>
+          <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input
+              type="email"
+              class="form-control"
+              id="email"
+              name="email"
+              placeholder="Enter Email"
+            />
+          </div>
+          <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input
+              type="password"
+              class="form-control"
+              id="password"
+              name="password"
+              placeholder="Enter password"
+            />
+          </div>
+          <button id="submit" type="submit" class="btn btn-primary">Login</button>
         </div>
       </div>
     </div>
@@ -52,5 +50,32 @@
       integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
       crossorigin="anonymous"
     ></script>
+    <script>
+      const btn_submit = document.querySelector('button#submit');
+      const input_email = document.querySelector('input#email');
+      const input_password = document.querySelector('input#password');
+      btn_submit.addEventListener('click', async () => {
+
+        const form = new FormData();
+        form.append('email', input_email.value);
+        form.append('password', input_password.value);
+        const response = await fetch('/login', {
+          method: 'POST',
+          body: form
+        });
+        const codes = [ 200, 400 ]
+        if (codes.includes(response.status))
+        {
+          const data = await response.json();
+          alert(data.message);
+          if (response.status === 200)
+          {
+            if ('token' in (data?.data ?? {})) localStorage.setItem('token', 'Bearer ' + data.data.token);
+            window.open('/', '_self');
+          }
+        } else alert('Something wrong i can feel it!');
+
+      });
+    </script>
   </body>
 </html>

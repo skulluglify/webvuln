@@ -185,22 +185,35 @@ function query_decode(string $query): array
     return $temp;
 }
 
-function str(mixed $any): string
+function _escaping(string $text, bool $mode = true): string
+{
+    if ($mode) return '"' . $text . '"';
+    return $text;
+}
+
+function str(mixed $any, bool $escaping = false): string
 {
     // little shitty code to get stringify of all objective!
 
     if (is_null($any)) return 'null';
     else if (is_bool($any)) return $any ? 'true' : 'false';
     else if (is_numeric($any)) return '' . $any;  // convert to string!
-    else if (is_string($any)) return $any;  // return itself!
-    else if (is_array($any)) return implode(',', array_map(fn(mixed $v): string => str($v), $any));
+    else if (is_string($any)) return _escaping($any, $escaping);  // return itself!
+    else if (is_array($any)) {
+
+        $temp = '';
+        $data = $any;
+        foreach ($data as $key => $value) $temp .= '"' . str($key) . '": ' . str($value, true) . ',' . PHP_EOL;
+        $temp = strlen($temp) > 2 ? substr($temp, 0, strlen($temp) - 2) : $temp;
+        return '{'.$temp.'}';
+    }
     else if (is_callable($any)) {
         try {
             $reflect = new ReflectionFunction($any);
-            return $reflect->getName();
+            return 'fn '.$reflect->getName().'()';
         } catch (Exception)
         {
-            return 'anonymous';  // unable to get func name!
+            return _escaping('fn anonymous()', $escaping);  // unable to get func name!
         }
     }
     else if (is_object($any)) {
@@ -209,12 +222,12 @@ function str(mixed $any): string
         {
             // invoke method class!
             $v = $any->__toString();
-            return str($v);  // maybe some funky places!
+            return str($v, $escaping);  // maybe some funky places!
         }
 
-        return 'object';
+        return $escaping ? '{}' : 'object';
     }
-    return 'undefined';
+    return $escaping ? 'null' : 'undefined';
 }
 
 
@@ -322,6 +335,10 @@ function get_param_by_uri(string $uri): ?string
     // $uri = 'http://www.skfw.net/login?param=go';
     // return: param=go
     // /( 0_0)/
+
+    // remove href!
+    $data = explode('#', $uri, limit: 2);
+    $data = $data[0];
 
     // maybe param start with char '?'!
     $data = explode('?', $uri, limit: 2);

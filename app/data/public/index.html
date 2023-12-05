@@ -14,7 +14,7 @@
   <body>
     <!-- todolist -->
     <header class="container-fluid">
-      <button class="btn btn-outline-primary my-4">Login</button>
+      <a href="/login.html" class="btn btn-outline-primary my-4">Login</a>
     </header>
     <main
       class="container d-flex flex-column justify-content-center align-items-center mt-5"
@@ -24,7 +24,7 @@
       <div class="col-md-9">
         <div class="card">
           <div class="card-body">
-            <button
+            <button id="add_todo"
               class="btn btn-primary my-4"
               data-bs-toggle="modal"
               data-bs-target="#exampleModal"
@@ -41,43 +41,40 @@
                   <th scope="col">Action</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr>
+              <tbody id="rows">
+                <tr class="sample">
                   <th scope="row">1</th>
-                  <td width="40%">
+                  <td class="description_sample" width="40%">
                     Lorem ipsum dolor sit amet consectetur adipisicing elit.
                     Quisquam, voluptatum.
                   </td>
-                  <td>19 Agustus 2021</td>
-                  <td width="15%">
+                  <td class="deadline_sample">19 Agustus 2021</td>
+                  <td class="progress_sample" width="15%">
                     <span class="badge rounded-pill text-bg-success"
-                      >Finish</span
+                      >finish</span
                     >
                     <span class="badge rounded-pill text-bg-danger">
-                      Due Date
+                      due date
                     </span>
                     <span class="badge rounded-pill text-bg-warning">
-                      On Progress
+                      on progress
                     </span>
                   </td>
-                  <td width="20%">
-                    <a
-                      class="badge rounded-pill text-bg-success text-decoration-none"
-                      href=""
+                  <td class="options_sample" width="20%">
+                    <a class="badge rounded-pill text-bg-success text-decoration-none"
+                      href="#"
                     >
-                      Finish
+                      finish
                     </a>
 
-                    <a
-                      class="badge rounded-pill text-bg-danger text-decoration-none"
-                      href=""
-                      >Delete</a
+                    <a class="badge rounded-pill text-bg-danger text-decoration-none"
+                      href="#"
+                      >delete</a
                     >
 
-                    <a
-                      class="badge rounded-pill text-bg-warning text-decoration-none"
-                      href=""
-                      >Edit</a
+                    <a class="badge rounded-pill text-bg-warning text-decoration-none"
+                      href="#"
+                      >edit</a
                     >
                   </td>
                 </tr>
@@ -139,7 +136,10 @@
               >
                 Close
               </button>
-              <button type="button" class="btn btn-primary">Save</button>
+              <button id="submit"
+                      type="button"
+                      class="btn btn-primary"
+                      data-bs-dismiss="modal">Save</button>
             </div>
           </form>
         </div>
@@ -150,5 +150,208 @@
       integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
       crossorigin="anonymous"
     ></script>
+    <script>
+      const btn_add_todo = document.querySelector('button#add_todo');
+      const tbody_rows = document.querySelector('tbody#rows');
+      const tr_sample = document.querySelector('tbody#rows > tr.sample');
+      tr_sample.style.display = 'none';
+
+      const token = localStorage.getItem('token') ?? '';
+
+      function set_progress(parent, value = 'on progress')
+      {
+        const progresses = ['finish', 'on progress', 'due date'];
+        for (let element of parent.childNodes)
+        {
+          const progress = String(element.innerText).trim().toLowerCase();
+          if (progresses.includes(progress)) element.style.display = progress !== value ? 'none' : element.style.display;
+        }
+      }
+
+      function set_options(parent, finishHandler, deleteHandler, editHandler)
+      {
+        const progresses = {'finish': finishHandler, 'delete': deleteHandler, 'edit': editHandler};
+        for (let element of parent.childNodes)
+        {
+          const progress = String(element.innerText).trim().toLowerCase();
+          for (let name in progresses)
+          {
+            let handler = progresses[name];
+            if (progress === name) element.addEventListener('click', handler);
+          }
+        }
+      }
+
+      function datetime_get_timezone_offset()
+      {
+        const date = new Date();
+        const offset = date.getTimezoneOffset() * -1;  // reverse! UTC -> locale! (minutes)
+        return offset * 60 * 1000;  // minutes -> seconds -> milliseconds
+      }
+
+      function datetime_get_timezone_offset_str()
+      {
+        const date = new Date();
+        const offset = date.getTimezoneOffset() * -1;  // reverse! UTC -> locale!
+        const hours = Math.floor(Math.abs(offset) / 60);
+        const minutes = Math.abs(offset) % 60;
+        const sign = offset > 0 ? '+' : '-';
+        return `GMT${sign}${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
+      }
+
+      function datetime_from_timestamp(timestamp)
+      {
+        const offset = datetime_get_timezone_offset();  // get offset!
+        const date = new Date(timestamp + offset);  // change to local datetime!
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        const hour = date.getHours().toString().padStart(2, '0');
+        const minute = date.getMinutes().toString().padStart(2, '0');
+        const second = date.getSeconds().toString().padStart(2, '0');
+        return `${year}/${month}/${day} ${hour}:${minute}:${second}`;
+      }
+
+      const input_todo = document.querySelector('input#todo');
+      const input_deadline = document.querySelector('input#deadline');
+      const btn_submit = document.querySelector('button#submit');
+
+      let mode = 0;
+
+      function edit_todo(description, deadline, callback = () => {})
+      {
+        mode = 1;
+        btn_add_todo.click();
+        input_todo.value = description;
+        input_deadline.value = datetime_from_timestamp(deadline).split(' ').shift().replace(/\//g, '-');
+        btn_submit.addEventListener('click', () => {
+          mode = 0;
+          const deadline = new Date(input_deadline.value);
+          const offset = datetime_get_timezone_offset() * -1;  // reverse! locale -> UTC
+          callback(input_todo.value, deadline.getTime() + offset);
+          input_todo.value = '';
+          input_deadline.value = '';
+        }, { once: true })
+      }
+
+
+      btn_submit.addEventListener('click', async () => {
+        if (mode !== 1)
+        {
+          const deadline = new Date(input_deadline.value);
+          const offset = datetime_get_timezone_offset() * -1;  // reverse! locale -> UTC
+          const data = {
+            description: input_todo.value,
+            deadline: deadline.getTime() + offset,
+          }
+
+          const response = await fetch('/admin/todos/add', {
+            method: 'POST',
+            body: JSON.stringify(data),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': token,
+            },
+          })
+
+          input_todo.value = '';
+          input_deadline.value = '';
+
+          const codes = [ 200, 400 ]
+          if (codes.includes(response.status))
+          {
+            const data = await response.json();
+            alert(data.message);
+            window.open(location.pathname, '_self');
+          } else alert('Login terlebih dahulu!');
+        }
+      })
+
+      function render(id, description, deadline, status)
+      {
+        const keep = { id: id, description: description, deadline: deadline, status: status, finished: false };
+        const tr_sample_clone = tr_sample.cloneNode(true);
+        tr_sample_clone.style.display = null;
+
+        const td_description_sample = tr_sample_clone.querySelector('td.description_sample');
+        const td_deadline_sample = tr_sample_clone.querySelector('td.deadline_sample');
+        const td_progress_sample = tr_sample_clone.querySelector('td.progress_sample');
+        const td_options_sample = tr_sample_clone.querySelector('td.options_sample');
+
+        if (td_description_sample !== null && td_deadline_sample !== null && td_progress_sample !== null && td_options_sample !== null)
+        {
+          td_description_sample.innerHTML = keep.description;  // unsafe!
+          td_deadline_sample.innerText = datetime_from_timestamp(keep.deadline);
+          set_progress(td_progress_sample, keep.status);
+          set_options(td_options_sample, async () => {
+                    const data = Object.assign(keep, { finished: true, status: 'finish' });
+                    const response = await fetch('/admin/todos/edit?id=' + data.id, {
+                      method: 'PUT',
+                      body: JSON.stringify(data),
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': token,
+                      },
+                    })
+
+                    const codes = [ 200, 400 ]
+                    if (codes.includes(response.status))
+                    {
+                      const data = await response.json();
+                      alert(data.message);
+                      window.open(location.pathname, '_self');
+                    } else alert('Login terlebih dahulu!');
+                  },
+                  async () => {
+                    const response = await fetch('/admin/todos/del?id=' + keep.id, {
+                      method: 'DELETE',
+                      headers: {
+                        'Authorization': token,
+                      },
+                    })
+
+                    const codes = [ 200, 400 ]
+                    if (codes.includes(response.status))
+                    {
+                      const data = await response.json();
+                      alert(data.message);
+                      window.open(location.pathname, '_self');
+                    } else alert('Login terlebih dahulu!');
+                  },
+                  () => {
+                    edit_todo(keep.description, keep.deadline, async (description, deadline) => {
+
+                      const data = Object.assign(keep, { finished: true, status: 'finish' });
+                      const response = await fetch('/admin/todos/edit?id=' + data.id, {
+                        method: 'PUT',
+                        body: JSON.stringify(data),
+                        headers: {
+                          'Content-Type': 'application/json',
+                          'Authorization': token,
+                        },
+                      })
+
+                      const codes = [ 200, 400 ]
+                      if (codes.includes(response.status))
+                      {
+                        const data = await response.json();
+                        alert(data.message);
+                        window.open(location.pathname, '_self');
+                      } else alert('Login terlebih dahulu!');
+                    });
+                  },
+          )
+        }
+
+        tbody_rows.appendChild(tr_sample_clone);
+      }
+
+      (async function() {
+        const response = await fetch('/todos', { method: 'GET' });
+        const data = await response.json();
+        for (let item of data) render(item.id, item.description, item.deadline, item.status);
+      })()
+
+    </script>
   </body>
 </html>

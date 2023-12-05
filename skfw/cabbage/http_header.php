@@ -1,7 +1,6 @@
 <?php
 namespace Skfw\Cabbage;
 
-use Skfw\Cabbage\Values;
 use Skfw\Interfaces\Cabbage\IHttpHeader;
 use Skfw\Interfaces\Cabbage\IHttpHeaderCollector;
 use Skfw\Interfaces\Cabbage\IValues;
@@ -50,15 +49,21 @@ class HttpHeaderCollector implements IHttpHeaderCollector
         }
 
         // fix header values
-        $this->_fix_header('CONTENT-TYPE');
-        $this->_fix_header('CONTENT-LENGTH');
+        $this->_fix_header('CONTENT_TYPE');
+        $this->_fix_header('CONTENT_LENGTH');
     }
     private function _fix_header(string $key): void
     {
+        // make it use char '_'!
+        $key = str_replace('-', '_', $key);
         if (isset($_SERVER[$key]))
         {
             $value = str($_SERVER[$key]);  // must be string!
+
+            // make it use char '-'!
+            $key = str_replace('_', '-', $key);
             $cew_key = capitalize_each_word($key);
+
             if (isset($this->_http_headers[$cew_key]))
             {
                 // check value is valid or not!
