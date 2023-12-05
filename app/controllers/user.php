@@ -67,6 +67,14 @@ class UserController
         }
     }
 
+    #[Route('/init')]
+    public function login(IHttpRequest $request): ?IHttpResponse
+    {
+        $this->simple->init();
+        $this->simple->add_user('admin', 'admin@mail.co', '1234');
+        return new HttpResponse('table has been created! user: admin, pass: 1234');
+    }
+
     #[Route('/login')]
     public function login(IHttpRequest $request): ?IHttpResponse
     {
