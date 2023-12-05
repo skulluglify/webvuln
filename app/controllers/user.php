@@ -1,7 +1,10 @@
 <?php
 namespace App\Controllers;
 
+use App\Middlewares\ExampleMiddleware;
+use App\Middlewares\FakeAuthMiddleware;
 use App\Models\SimpleTodosDatabaseMySQL;
+use Exception;
 use Skfw\Cabbage\HttpResponse;
 use Skfw\Enums\HttpMethod;
 use Skfw\Enums\HttpStatusCode;
@@ -17,6 +20,17 @@ class UserController
     public function __construct()
     {
         $this->simple = new SimpleTodosDatabaseMySQL();
+    }
+
+    /**
+     * @return IMiddleware[]
+     * @throws Exception
+     */
+    public function middlewares(): array
+    {
+        return [
+            new ExampleMiddleware(),
+        ];
     }
 
     private function _todos_collate(array $todo): array
